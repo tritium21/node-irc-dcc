@@ -15,7 +15,7 @@
     "dcc"
   ],
   "author": "Tritium",
-  "license": "MIT",
+  "license": "GPLv3",
   "bugs": {
     "url": "https://github.com/tritium21/node-irc-dcc/issues"
   },

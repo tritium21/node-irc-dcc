@@ -21,6 +21,7 @@
     <Content Include="example\data.txt" />
     <Compile Include="example\test.js" />
     <Compile Include="example\test_patch.js" />
+    <Compile Include="lib\chat.js" />
     <Compile Include="lib\dcc.js" />
     <Compile Include="lib\myip.js" />
   </ItemGroup>
