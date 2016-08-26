@@ -7,7 +7,10 @@ client.addListener('join#scram', () => {
         chat.on('line', (line) => {
             console.log(line);
             if (line.startsWith('exit')) { 
-                client.disconnect();
+                chat.say("bye!")
+                chat.disconnect();
+                client.say("Bye!!")
+                client.disconnect("Goobye")
                 process.exit();
             }
         });
