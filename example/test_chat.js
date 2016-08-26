@@ -2,16 +2,22 @@ const irc = require('irc');
 const dcc = require('../lib/dcc');
 
 client = new irc.Client('irc.sorcery.net', 'Dueterium', {channels: ['#scram']})
-client.addListener('join#scram', () => {
-    dcc.sendChat(client, 'Tritium', (chat) => {
-        chat.on('line', (line) => {
-            console.log(line);
-            if (line.startsWith('exit')) { 
-                client.say('#scram', "Bye!!")
-                client.disconnect("Goobye")
-                chat.disconnect();
-                //process.exit();
-            }
-        });
-    });
+client.addListener('ctcp-privmsg', (from, to, text, message) => {
+    var cmd = text.split(" ")[0];
+    switch (cmd) {
+        case "chat":
+            dcc.sendChat(client, 'Tritium', (chat) => {
+                chat.on('line', (line) => {
+                    if (line.startsWith('exit')) {
+                        chat.say("Bye!!")
+                        chat.disconnect();
+                    }
+                });
+            });
+            break;
+        case "exit":
+            client.disconnect("goodbye!");
+            process.exit();
+    }
+
 });
