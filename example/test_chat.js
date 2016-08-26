@@ -3,7 +3,9 @@ const dcc = require('../lib/dcc');
 
 client = new irc.Client('irc.sorcery.net', 'Dueterium', {channels: ['#scram']})
 client.addListener('ctcp-privmsg', (from, to, text, message) => {
-    var cmd = text.split(" ")[0];
+    console.log(text);
+    var cmd = text.split(" ")[0].toLowerCase();
+    console.log(cmd);
     switch (cmd) {
         case "chat":
             dcc.sendChat(client, 'Tritium', (chat) => {
