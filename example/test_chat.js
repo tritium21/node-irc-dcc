@@ -9,7 +9,7 @@ client.addListener('join#scram', () => {
             if (line.startsWith('exit')) { 
                 chat.say("bye!")
                 chat.disconnect();
-                client.say("Bye!!")
+                client.say('#scram', "Bye!!")
                 client.disconnect("Goobye")
                 process.exit();
             }
