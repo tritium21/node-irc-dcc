@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 const irc = require('irc');
 const dcc = require('../lib/dcc');
 
@@ -37,6 +39,12 @@ client.addListener('ctcp-privmsg', (from, to, text, message) => {
                                 chat.say("You said: " + line)
                             }
                         });
+                    });
+                    break;
+                case 'send':
+                    dcc.acceptSend(client, args.addr, args.port, args.filename, args.length, (connection, filename) => {
+                        var ws = fs.createWriteStream(__dirname + '/' + filename);
+                        connection.pipe(ws);
                     });
                     break;
             }
