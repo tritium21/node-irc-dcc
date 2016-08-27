@@ -15,7 +15,7 @@ client.addListener('ctcp-privmsg', (from, to, text, message) => {
             });
             break;
         case "chat":
-            dcc.sendChat(client, 'Tritium', (chat) => {
+            dcc.sendChat(client, { to: 'Tritium', port_start: 3500, port_end: 3550 }, (chat) => {
                 chat.on('line', (line) => {
                     if (line.startsWith('exit')) {
                         chat.say("Bye!!")
