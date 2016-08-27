@@ -8,14 +8,14 @@ client.addListener('ctcp-privmsg', (from, to, text, message) => {
     var cmd = text.split(" ")[0].toLowerCase();
     switch (cmd) {
         case "send":
-            dcc.sendFile(client, { to:from, filename:__dirname + '/data.txt', port_start: 3500, port_end: 3550 }, (err) => {
+            dcc.sendFile(client, { to:from, filename:__dirname + '/data.txt', port_start: 2000, port_end: 2020 }, (err) => {
                 if (err) {
                     console.log(err);
                 }
             });
             break;
         case "chat":
-            dcc.sendChat(client, { to: 'Tritium', port_start: 3500, port_end: 3550 }, (chat) => {
+            dcc.sendChat(client, { to: 'Tritium', port_start: 2000, port_end: 2020 }, (chat) => {
                 chat.on('line', (line) => {
                     if (line.startsWith('exit')) {
                         chat.say("Bye!!")
