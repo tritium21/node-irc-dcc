@@ -17,6 +17,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
     <Compile Include="lib\parser.js" />
+    <Compile Include="lib\port.js" />
     <Content Include=".eslintrc.json" />
     <Content Include=".gitignore" />
     <Content Include="lib\parser.pegjs" />
