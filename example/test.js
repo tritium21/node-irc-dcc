@@ -42,7 +42,7 @@ client.addListener('ctcp-privmsg', (from, to, text, message) => {
                     });
                     break;
                 case 'send':
-                    dcc.acceptSend(client, args.addr, args.port, args.filename, args.length, (connection, filename) => {
+                    dcc.acceptSend(client, args, (connection, filename) => {
                         var ws = fs.createWriteStream(__dirname + '/' + filename);
                         connection.pipe(ws);
                     });
