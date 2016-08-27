@@ -16,8 +16,10 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
+    <Compile Include="lib\parser.js" />
     <Content Include=".eslintrc.json" />
     <Content Include=".gitignore" />
+    <Content Include="lib\parser.pegjs" />
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="example\data.txt" />
@@ -34,11 +36,13 @@
     <Folder Include="typings\globals\ip\" />
     <Folder Include="typings\globals\irc\" />
     <Folder Include="typings\globals\node\" />
+    <Folder Include="typings\globals\pegjs\" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="typings\globals\ip\index.d.ts" />
     <TypeScriptCompile Include="typings\globals\irc\index.d.ts" />
     <TypeScriptCompile Include="typings\globals\node\index.d.ts" />
+    <TypeScriptCompile Include="typings\globals\pegjs\index.d.ts" />
     <TypeScriptCompile Include="typings\index.d.ts" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
