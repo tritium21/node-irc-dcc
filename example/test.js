@@ -9,10 +9,19 @@ client.addListener('ctcp-privmsg', (from, to, text, message) => {
     var cmd = text.split(" ")[0].toLowerCase();
     switch (cmd) {
         case "send":
-            dcc.sendFile(from, __dirname + '/data.txt', (err) => {
+            fs.stat(__dirname + '/data.txt', (err, filestat) => {
                 if (err) {
                     client.notice(from, err);
+                    return;
                 }
+                dcc.sendFile(from, 'data.txt', filestat.size, (err, con, position) => {
+                    if (err) {
+                        client.notice(from, err);
+                        return;
+                    }
+                    rs = fs.createReadStream(__dirname + '/data.txt', { start: position });
+                    rs.pipe(con);
+                });
             });
             break;
         case "exit":
@@ -23,7 +32,6 @@ client.addListener('ctcp-privmsg', (from, to, text, message) => {
 });
 client.on('dcc-send', (from, args, message) => {
     var ws = fs.createWriteStream(__dirname + "/" + args.filename)
-    console.log(args);
     dcc.acceptSend(from, args.host, args.port, args.filename, args.length, (err, filename, con) => {
         if (err) {
             client.notice(from, err);
