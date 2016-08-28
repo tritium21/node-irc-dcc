@@ -19,6 +19,7 @@
     <Compile Include="lib\parser.js" />
     <Content Include=".eslintrc.json" />
     <Content Include=".gitignore" />
+    <Content Include=".npmignore" />
     <Content Include="lib\parser.pegjs" />
     <Content Include="LICENSE.txt" />
     <Content Include="package.json" />

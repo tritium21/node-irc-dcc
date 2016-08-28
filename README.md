@@ -6,7 +6,7 @@ The hello world of network programming.
 
 ```javascript
 const irc = require('irc');
-const DCC = require('node-irc-dcc');  // pending registration on npm
+const DCC = require('irc-dcc');
 
 client = new irc.Client('irc.server.net', 'MyNickname', { channels: ['#a_channel'] })
 dcc = new DCC(client);
