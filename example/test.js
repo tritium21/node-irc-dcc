@@ -24,6 +24,20 @@ client.addListener('ctcp-privmsg', (from, to, text, message) => {
                 });
             });
             break;
+        case "chat":
+            dcc.sendChat(from, (chat) => {
+                chat.on("line", (line) => {
+                    switch (line) {
+                        case "exit":
+                            chat.say("Good Bye.");
+                            chat.disconnect();
+                            break;
+                        default:
+                            chat.say("You said: " + line);
+                    }
+                });
+            });
+            break;
         case "exit":
             client.disconnect("goodbye!");
             process.exit();
