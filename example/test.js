@@ -3,6 +3,19 @@ const fs = require('fs');
 const irc = require('irc');
 const DCC = require('../lib/dcc');
 
+function chatListener(chat) {
+    return (line) => {
+        switch (line) {
+            case "exit":
+                chat.say("Good Bye.");
+                chat.disconnect();
+                break;
+            default:
+                chat.say("You said: " + line);
+        }
+    }
+}
+
 client = new irc.Client('irc.sorcery.net', 'Deuterium', { channels: ['#scram'] })
 dcc = new DCC(client, {ports: [2000, 2020]});
 client.addListener('ctcp-privmsg', (from, to, text, message) => {
@@ -26,16 +39,7 @@ client.addListener('ctcp-privmsg', (from, to, text, message) => {
             break;
         case "chat":
             dcc.sendChat(from, (chat) => {
-                chat.on("line", (line) => {
-                    switch (line) {
-                        case "exit":
-                            chat.say("Good Bye.");
-                            chat.disconnect();
-                            break;
-                        default:
-                            chat.say("You said: " + line);
-                    }
-                });
+                chat.on("line", chatListener(chat));
             });
             break;
         case "exit":
@@ -52,5 +56,10 @@ client.on('dcc-send', (from, args, message) => {
             return;
         }
         con.pipe(ws);
+    });
+});
+client.on('dcc-chat', (from, args, message) => {
+    dcc.acceptChat(args.host, args.port, (chat) => {
+        chat.on("line", chatListener(chat));
     });
 });
