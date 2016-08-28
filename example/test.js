@@ -1,58 +1,65 @@
 const fs = require('fs');
 
 const irc = require('irc');
-const dcc = require('../lib/dcc');
+const DCC = require('../lib/dcc');
 
-client = new irc.Client('irc.sorcery.net', 'Deuterium', {channels: ['#scram']})
+function chatListener(chat) {
+    return (line) => {
+        switch (line) {
+            case "exit":
+                chat.say("Good Bye.");
+                chat.disconnect();
+                break;
+            default:
+                chat.say("You said: " + line);
+        }
+    }
+}
+
+client = new irc.Client('irc.sorcery.net', 'Deuterium', { channels: ['#scram'] })
+dcc = new DCC(client, {ports: [2000, 2020]});
 client.addListener('ctcp-privmsg', (from, to, text, message) => {
     var cmd = text.split(" ")[0].toLowerCase();
     switch (cmd) {
         case "send":
-            dcc.sendFile(client, { to:from, filename:__dirname + '/data.txt', port_start: 2000, port_end: 2020 }, (err) => {
+            fs.stat(__dirname + '/data.txt', (err, filestat) => {
                 if (err) {
-                    console.log(err);
+                    client.notice(from, err);
+                    return;
                 }
-            });
-            break;
-        case "chat":
-            dcc.sendChat(client, { to: 'Tritium', port_start: 2000, port_end: 2020 }, (chat) => {
-                chat.on('line', (line) => {
-                    if (line.startsWith('exit')) {
-                        chat.say("Bye!!")
-                        chat.disconnect();
-                    } else {
-                        chat.say("You said: " + line)
+                dcc.sendFile(from, 'data.txt', filestat.size, (err, con, position) => {
+                    if (err) {
+                        client.notice(from, err);
+                        return;
                     }
+                    rs = fs.createReadStream(__dirname + '/data.txt', { start: position });
+                    rs.pipe(con);
                 });
             });
             break;
-        case "dcc":
-            var args = dcc.parseDCC(text);
-            switch (args.type) {
-                case 'chat':
-                    dcc.acceptChat(client, args.addr, args.port, (chat) => {
-                        chat.on('line', (line) => {
-                            if (line.startsWith('exit')) {
-                                chat.say("Bye!!")
-                                chat.disconnect();
-                            } else {
-                                chat.say("You said: " + line)
-                            }
-                        });
-                    });
-                    break;
-                case 'send':
-                    args.from = from;
-                    dcc.acceptSend(client, args, (connection, filename) => {
-                        var ws = fs.createWriteStream(__dirname + '/' + filename);
-                        connection.pipe(ws);
-                    });
-                    break;
-            }
+        case "chat":
+            dcc.sendChat(from, (chat) => {
+                chat.on("line", chatListener(chat));
+            });
             break;
         case "exit":
             client.disconnect("goodbye!");
             process.exit();
     }
 
+});
+client.on('dcc-send', (from, args, message) => {
+    var ws = fs.createWriteStream(__dirname + "/" + args.filename)
+    dcc.acceptSend(from, args.host, args.port, args.filename, args.length, (err, filename, con) => {
+        if (err) {
+            client.notice(from, err);
+            return;
+        }
+        con.pipe(ws);
+    });
+});
+client.on('dcc-chat', (from, args, message) => {
+    dcc.acceptChat(args.host, args.port, (chat) => {
+        chat.on("line", chatListener(chat));
+    });
 });
