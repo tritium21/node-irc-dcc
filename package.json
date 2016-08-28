@@ -1,6 +1,6 @@
 {
   "name": "node-irc-dcc",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "DCC Support for Node-IRC",
   "main": "lib/dcc.js",
   "scripts": {
