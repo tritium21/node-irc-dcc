@@ -5,7 +5,7 @@ API
 `irc-dcc <https://github.com/tritium21/node-irc-dcc>`_ extends 
 `irc <https://github.com/martynsmith/node-irc/>`_ with `Direct Client-to-Client
 <https://en.wikipedia.org/wiki/Direct_Client-to-Client>`_ support.  Currently,
-sending and recieving files, as well as chat sessions are supported.
+sending and receiving files, as well as chat sessions are supported.
 
 DCC
 ---
@@ -21,21 +21,21 @@ DCC
             timeout: 30000
         }
 
-    `ports` is a length-2 indexable object (array).  The first and second objects in that
-    array should be the start and end of a port range that you want incomming DCC connections
-    to bind to.  If undefined or null, the default of `0` is used (the OS picks a port).
+    ``ports`` is a length-2 indexable object (array).  The first and second objects in that
+    array should be the start and end of a port range that you want incoming DCC connections
+    to bind to.  If undefined or null, the default of ``0`` is used (the OS picks a port).
 
-    `localAddress` is the source address for all outgoing connections and the IP to which
+    ``localAddress`` is the source address for all outgoing connections and the IP to which
     all listening connections are bound.  If unset, an attempt will be made to get this
     information off the client object.  If that is unset or undefined, a local ip address
     will be picked by the library.
 
-    `timeout` is the idle time an uninitiated DCC connection will wait before erroring out.
-    It is set in miliseconds.
+    ``timeout`` is the idle time an uninitiated DCC connection will wait before erring out.
+    It is set in milliseconds.
 
 .. js:function:: DCC.sendFile (to, filename, length, callback)
 
-    `DCC.sendFile` does not do any disk IO -- it is your responsibility to open the file, and 
+    ``DCC.sendFile`` does not do any disk IO -- it is your responsibility to open the file, and 
     send the data.  The library takes care of the CTCP messaging and establishing connections.
 
     :param string to: The nick to send the file to
@@ -86,7 +86,7 @@ DCC
 
 .. js:function:: DCC.acceptSend (from, host, port, filename, length [, position], callback)
 
-    `DCC.acceptSend` does not do any disk IO -- it is your responsibility to open the file, and 
+    ``DCC.acceptSend`` does not do any disk IO -- it is your responsibility to open the file, and 
     send the data.  The library takes care of the CTCP messaging and establishing connections.
 
     :param string from: The nick sending the file
@@ -131,19 +131,80 @@ DCC
 
 .. js:function:: DCC.sendChat (to, callback)
 
-    .. TODO Write this
+    :param string to: The nick to open a chat session to
+    :param calback:
+        .. js:function:: (err, chat)
+
+            :param err: Error, if there is an error, null otherwise
+            :param Chat chat: The chat connection object
+
+    .. code-block:: javascript
+        :linenos:
+        :emphasize-lines: 15,16,17,18,19
+
+        // A minimal example.
+        // Adjust the arguments to irc.Client as per the node-irc docs
+        //
+        // When your client connects to IRC, issue /ctcp <botnick> chat
+        //
+        const fs = require("fs");
+        const irc = require("irc");
+        const DCC = require("irc-dcc");
+
+        client = new irc.Client(...);
+        dcc = new DCC(client);
+
+        client.addListener('ctcp-privmsg', (from, to, text, message) => {
+            if (text.split(" ")[0].toLowerCase() == "chat") {
+                dcc.sendChat(from, (err, chat) => {
+                    chat.on("line", (err, chat) => {
+                        chat.say("You said: " + line);
+                    });
+                });
+            }
+        });
 
 .. js:function:: DCC.acceptChat (host, port, callback)
 
-    .. TODO Write this
+    :param string host: The IP address to connect to
+    :param number port: The port to connect to
+    :param callback:
+        .. js:function:: (err, chat)
+
+            :param err: Error, if there is an error, null otherwise
+            :param Chat chat: The chat connection object
+
+    .. code-block:: javascript
+        :linenos:
+        :emphasize-lines: 13,14,15,16,17,18,19
+
+        // A minimal example.
+        // Adjust the arguments to irc.Client as per the node-irc docs
+        //
+        // When your client connects to IRC, initiate a DCC chat with the bot
+        //
+        const fs = require("fs");
+        const irc = require("irc");
+        const DCC = require("irc-dcc");
+
+        client = new irc.Client(...);
+        dcc = new DCC(client);
+
+        client.on('dcc-chat', (from, args, message) => {
+            dcc.acceptChat(args.host, args.port, (err, chat) => {
+                chat.on("line", (err, chat) => {
+                    chat.say("You said: " + line);
+                });
+            });
+        });
 
 Events
 ______
 
-`irc-dcc` emits four new events from `irc.Client`.  Two events are intended for
+``irc-dcc`` emits four new events from ``irc.Client``.  Two events are intended for
 public use, and two are internal.  All four of the events are in the form
-of `function (from, args, message) {}`. See the `irc` documentation for the details
-of `message`.  `args` is an object of the parsed CTCP message, and is described 
+of ``function (from, args, message) {}``. See the ``irc`` documentation for the details
+of ``message``.  ``args`` is an object of the parsed CTCP message, and is described 
 for each of the public events.
 
 .. js:data:: 'dcc-send'
@@ -174,15 +235,18 @@ Chat
 ----
 
 The library provides a very basic type for interacting with DCC chat
-sessions, with one public method, and one event.
+sessions, with one public method, and one event.  They are both stupendously
+straight forward.
 
 .. js:function:: Chat.say(message)
 
-    .. TODO Write this
+    :param string message: Message to send
+
 
 Events
 ______
 
 .. js:data:: 'line'
 
-    .. TODO Write this
+    This is in the format of ``function (line)``, and is simply the raw line
+    of text from the connection.
