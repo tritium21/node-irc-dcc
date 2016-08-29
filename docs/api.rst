@@ -51,7 +51,7 @@ DCC
 
     .. code-block:: javascript
         :linenos:
-        :emphasize-lines: 20,21,22,23,24,25,26,27
+        :emphasize-lines: 20,21,22,23,24,25,26,27,28,29,30
 
         // A minimal example.
         // Adjust the arguments to irc.Client as per the node-irc docs
@@ -107,7 +107,7 @@ DCC
 
     .. code-block:: javascript
         :linenos:
-        :emphasize-lines: 15,16,17,18,19,20,21
+        :emphasize-lines: 15,16,17,18,19,20,21,22
 
         // A minimal example.
         // Adjust the arguments to irc.Client as per the node-irc docs
