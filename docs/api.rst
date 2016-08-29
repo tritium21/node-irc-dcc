@@ -38,14 +38,14 @@ DCC
     `DCC.sendFile` does not do any disk IO -- it is your responsibility to open the file, and 
     send the data.  The library takes care of the CTCP messaging and establishing connections.
 
-    :param string to: The nick to send the file to.
-    :param string filename: The filename to send in the CTCP message.
-    :param number length: The length of the file in bytes.
+    :param string to: The nick to send the file to
+    :param string filename: The filename to send in the CTCP message
+    :param number length: The length of the file in bytes
     :param callback:
         .. js:function:: (err, connection, position)
 
             :param err: Error, if there is an error, null otherwise
-            :param connection: The `net.Socket` object.
+            :param connection: The `net.Socket` object
             :param number position: The offset from the start of the file to begin reading from
 
 
@@ -84,8 +84,105 @@ DCC
             }
         });
 
+.. js:function:: DCC.acceptSend (from, host, port, filename, length [, position], callback)
+
+    `DCC.acceptSend` does not do any disk IO -- it is your responsibility to open the file, and 
+    send the data.  The library takes care of the CTCP messaging and establishing connections.
+
+    :param string from: The nick sending the file
+    :param string host: The IP address to connect to
+    :param number port: The port to connect to
+    :param string filename: The filename suggested by the other side
+    :param number length: The length of the file in bytes
+    :param number position: The offset from the beginning of the file, if you wish to resume
+    :param callback:
+        .. js:function:: (err, filename, connection)
+
+            :param err: Error, if there is an error, null otherwise
+            :param string filename: Name of the file
+            :param connection:  The `net.Socket` object
+
+    .. code-block:: javascript
+        :linenos:
+        :emphasize-lines: 15,16,17,18,19,20,21
+
+        // A minimal example.
+        // Adjust the arguments to irc.Client as per the node-irc docs
+        //
+        // When your client connects to IRC, send it a file.
+        //
+        const fs = require("fs");
+        const irc = require("irc");
+        const DCC = require("irc-dcc");
+
+        client = new irc.Client(...);
+        dcc = new DCC(client);
+
+        client.on('dcc-send', (from, args, message) => {
+            var ws = fs.createWriteStream(__dirname + "/" + args.filename)
+            dcc.acceptSend(from, args.host, args.port, args.filename, args.length, (err, filename, con) => {
+                if (err) {
+                    client.notice(from, err);
+                    return;
+                }
+                con.pipe(ws);
+            });
+        });
+
+.. js:function:: DCC.sendChat (to, callback)
+
+    .. TODO Write this
+
+.. js:function:: DCC.acceptChat (host, port, callback)
+
+    .. TODO Write this
+
+Events
+______
+
+`irc-dcc` emits four new events from `irc.Client`.  Two events are intended for
+public use, and two are internal.  All four of the events are in the form
+of `function (from, args, message) {}`. See the `irc` documentation for the details
+of `message`.  `args` is an object of the parsed CTCP message, and is described 
+for each of the public events.
+
+.. js:data:: 'dcc-send'
+
+    ::
+
+        {
+            type: "send",
+            filename: <string>,  // The filename
+            long: <number>,      // IP address to connect to as a long integer
+            host: <string>,      // IP address to connect to as a string
+            port: <number>,      // Port to connect to
+            length: <number>,    // Length of file, in bytes
+        }
+
+.. js:data:: 'dcc-chat'
+
+    ::
+
+        {
+            type: "chat",
+            long: <number>,      // IP address to connect to as a long integer
+            host: <string>,      // IP address to connect to as a string
+            port: <number>,      // Port to connect to
+        }
 
 Chat
 ----
 
-ToDo
+The library provides a very basic type for interacting with DCC chat
+sessions, with one public method, and one event.
+
+.. js:function:: Chat.say(message)
+
+    .. TODO Write this
+
+Events
+______
+
+.. js:data:: 'line'
+
+    .. TODO Write this
