@@ -72,12 +72,15 @@ DCC
                         client.notice(from, err);
                         return;
                     }
-                    dcc.sendFile(from, 'data.txt', filestat.size, (err, con, position) => {
+                    dcc.sendFile(from, 'data.txt', filestat.size,
+                                 (err, con, position) => {
                         if (err) {
                             client.notice(from, err);
                             return;
                         }
-                        rs = fs.createReadStream(__dirname + '/data.txt', { start: position });
+                        rs = fs.createReadStream(__dirname + '/data.txt', {
+                            start: position
+                        });
                         rs.pipe(con);
                     });
                 });
@@ -120,7 +123,8 @@ DCC
 
         client.on('dcc-send', (from, args, message) => {
             var ws = fs.createWriteStream(__dirname + "/" + args.filename)
-            dcc.acceptSend(from, args.host, args.port, args.filename, args.length, (err, filename, con) => {
+            dcc.acceptSend(from, args.host, args.port, args.filename,
+                           args.length, (err, filename, con) => {
                 if (err) {
                     client.notice(from, err);
                     return;
