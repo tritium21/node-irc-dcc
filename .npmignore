@@ -1,11 +1,11 @@
 ﻿node_modules/
 .vs/
-/node_modules
-/bin
-/obj
-/example
-/typings
+node_modules
+bin
+obj
+example
+typings
 .eslintrc*
 *.sln
 *.njsproj
-/docs
+docs
