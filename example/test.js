@@ -3,7 +3,10 @@ const fs = require('fs');
 const irc = require('irc');
 const DCC = require('../lib/dcc');
 
-function chatListener(chat) {
+function chatListener(err, chat) {
+    if (err) {
+        console.log(err);
+    }
     return (line) => {
         switch (line) {
             case "exit":
@@ -38,8 +41,8 @@ client.addListener('ctcp-privmsg', (from, to, text, message) => {
             });
             break;
         case "chat":
-            dcc.sendChat(from, (chat) => {
-                chat.on("line", chatListener(chat));
+            dcc.sendChat(from, (err, chat) => {
+                chat.on("line", chatListener(err, chat));
             });
             break;
         case "exit":
@@ -59,7 +62,7 @@ client.on('dcc-send', (from, args, message) => {
     });
 });
 client.on('dcc-chat', (from, args, message) => {
-    dcc.acceptChat(args.host, args.port, (chat) => {
-        chat.on("line", chatListener(chat));
+    dcc.acceptChat(args.host, args.port, (err, chat) => {
+        chat.on("line", chatListener(err, chat));
     });
 });
