@@ -53,7 +53,6 @@ describe('Chat', () => {
             assert.deepEqual(chat.emit.lastCall.args, ["line", "this is a line"]);
         });
         it('should eat the error', () => {
-            var err = new Error("foo");
             assert.doesNotThrow(() => {
                 var temp = {
                     addListener: simple.stub(),
@@ -62,20 +61,19 @@ describe('Chat', () => {
                     end: simple.stub(),
                     requestedDisconnect: true
                 };
-                simple.mock(chat, "emit").throwWith(err);
                 var chat = new Chat(temp);
                 var hnd = temp.addListener.lastCall.args[1];
-                hnd('this is a line')
-            }, err);
+                simple.mock(chat, "emit").throwWith(new TypeError());
+                hnd('this is a line\r\n')
+            }, TypeError);
         });
         it('should not eat the error', () => {
-            var err = new Error("foo");
             assert.throws(() => {
-                simple.mock(chat, "emit").throwWith(err);
                 var chat = new Chat(stub_con);
-                var hnd = temp.addListener.lastCall.args[1];
-                hnd('this is a line')
-            }, err);
+                var hnd = stub_con.addListener.lastCall.args[1];
+                simple.mock(chat, "emit").throwWith(new TypeError());
+                hnd('this is a line\r\n');
+            }, TypeError);
         });
     });
     describe('#say()', () => {
