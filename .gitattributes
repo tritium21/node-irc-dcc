@@ -1,0 +1,8 @@
+*.js text eol=crlf
+*.py text eol=crlf
+*.yml text eol=crlf
+*.txt text eol=crlf
+*.rst text eol=crlf
+*.bat text eol=crlf
+*.pegjs text eol=crlf
+*.md text eol=crlf
