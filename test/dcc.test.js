@@ -16,6 +16,7 @@
 var assert = require('assert');
 var simple = require('simple-mock');
 var DCC = require('../lib/dcc');
+var netUtil = require('../lib/net-util');
 var ip = require('ip')
 
 describe('DCC.parseDCC()', function() {
@@ -150,6 +151,50 @@ describe('DCC', () => {
             it('should set the timeout to 8675309 (from options)', () => {
                 var dcc = new DCC(stub_client, { timeout: 8675309 });
                 assert.equal(dcc.timeout, 8675309);
+            });
+        });
+    });
+    describe('#getIP', () => {
+        it('should callback with 192.168.1.100', (done) => {
+            var dcc = new DCC(stub_client, {});
+            simple.mock(netUtil, 'getMyIP').callbackWith('192.168.1.100')
+            dcc.getIP((host) => {
+                assert.equal(host, '192.168.1.100');
+                done();
+            });
+        });
+    });
+    describe('#getPort', () => {
+        it('should callback with 0 (options.ports: 0)', (done) => {
+            var dcc = new DCC(stub_client, {ports: 0});
+            simple.mock(netUtil, 'getUnusedPort').callbackWith(99999)
+            dcc.getPort((port) => {
+                assert.equal(port, 0);
+                done();
+            });
+        });
+        it('should not callback with 0', (done) => {
+            var dcc = new DCC(stub_client, { ports: [2000, 2020] });
+            simple.mock(netUtil, 'getUnusedPort').callbackWith(2000)
+            dcc.getPort((port) => {
+                assert.equal(port, 2000);
+                done();
+            });
+        });
+    });
+    describe('#getPortIP', () => {
+        it('should callback with 192.168.1.100', (done) => {
+            var dcc = new DCC(stub_client, { ports: [2000, 2020] });
+            simple.mock(netUtil, 'getUnusedPort').callbackWith(2000)
+            simple.mock(netUtil, 'getMyIP').callbackWith('192.168.1.100')
+            dcc.getPortIP((details) => {
+                var expected = {
+                    host: '192.168.1.100',
+                    long: 3232235876,
+                    port: 2000
+                };
+                assert.deepEqual(details, expected);
+                done();
             });
         });
     });
