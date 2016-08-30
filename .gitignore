@@ -1,7 +1,6 @@
-node_modules/
 .vs/
 node_modules/
 bin/
 obj/
 docs/_build/
-/coverage
+coverage/
