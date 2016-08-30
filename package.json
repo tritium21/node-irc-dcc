@@ -10,7 +10,11 @@
   },
   "description": "DCC Support for Node-IRC",
   "devDependencies": {
+    "blanket": "^1.2.3",
+    "coveralls": "^2.11.12",
+    "istanbul": "^0.4.5",
     "mocha": "^3.0.2",
+    "mocha-lcov-reporter": "^1.2.0",
     "pegjs": "^0.10.0",
     "simple-mock": "^0.7.0"
   },
@@ -26,8 +30,14 @@
     "type": "git",
     "url": "git+https://github.com/tritium21/node-irc-dcc.git"
   },
-  "scripts": {
-    "test": "mocha --recursive"
-  },
-  "version": "0.2.1"
+    "scripts": {
+        "test": "mocha --recursive",
+        "travis": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
+    },
+  "version": "0.2.1",
+  "config": {
+    "blanket": {
+      "pattern": "lib/"
+    }
+  }
 }
