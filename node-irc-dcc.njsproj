@@ -24,6 +24,7 @@
     <Content Include=".eslintrc.json" />
     <Content Include=".gitignore" />
     <Content Include=".npmignore" />
+    <Content Include=".travis.yml" />
     <Content Include="docs\api.rst" />
     <Content Include="docs\conf.py" />
     <Content Include="docs\index.rst" />
