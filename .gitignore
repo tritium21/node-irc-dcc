@@ -1,6 +1,6 @@
 ﻿node_modules/
 .vs/
-/node_modules
-/bin
-/obj
+node_modules/
+bin/
+obj/
 docs/_build/
