@@ -239,12 +239,16 @@ Chat
 ----
 
 The library provides a very basic type for interacting with DCC chat
-sessions, with one public method, and one event.  They are both stupendously
+sessions, with two public method, and one event.  They are both stupendously
 straight forward.
 
 .. js:function:: Chat.say(message)
 
     :param string message: Message to send
+
+.. js:function:: Chat.disconnect()
+
+    Ends the chat session.
 
 
 Events
