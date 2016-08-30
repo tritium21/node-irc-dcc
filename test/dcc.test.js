@@ -126,10 +126,10 @@ describe('DCC', () => {
                 var dcc = new DCC(stub_client, { ports: [2000, 2020] });
                 assert.deepEqual(dcc.ports, [2000, 2020])
             });
-            it('should set localAddress to ' + ip.address() + ' (automatic)', () => {
+            it('should set localAddress to 192.168.1.100 (automatic)', () => {
+                simple.mock(ip, 'address').returnWith('192.168.1.100');
                 var dcc = new DCC(stub_client, {});
-                var expected = ip.address();
-                assert.equal(dcc.localAddress, expected);
+                assert.equal(dcc.localAddress, '192.168.1.100');
             });
             it('should set localAddress to 192.168.1.100 (from client)', () => {
                 var temp = {
