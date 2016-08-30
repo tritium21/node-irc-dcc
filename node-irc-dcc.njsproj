@@ -59,7 +59,6 @@
     <Folder Include="typings\globals\ip\" />
     <Folder Include="typings\globals\irc\" />
     <Folder Include="typings\globals\mocha\" />
-    <Folder Include="typings\globals\mock-require\" />
     <Folder Include="typings\globals\node\" />
     <Folder Include="typings\globals\pegjs\" />
     <Folder Include="typings\globals\simple-mock\" />
@@ -68,7 +67,6 @@
     <TypeScriptCompile Include="typings\globals\ip\index.d.ts" />
     <TypeScriptCompile Include="typings\globals\irc\index.d.ts" />
     <TypeScriptCompile Include="typings\globals\mocha\index.d.ts" />
-    <TypeScriptCompile Include="typings\globals\mock-require\index.d.ts" />
     <TypeScriptCompile Include="typings\globals\node\index.d.ts" />
     <TypeScriptCompile Include="typings\globals\pegjs\index.d.ts" />
     <TypeScriptCompile Include="typings\globals\simple-mock\index.d.ts" />

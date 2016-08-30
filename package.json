@@ -26,8 +26,8 @@
     "type": "git",
     "url": "git+https://github.com/tritium21/node-irc-dcc.git"
   },
-    "scripts": {
-        "test": "mocha --recursive"
-    },
+  "scripts": {
+    "test": "mocha --recursive"
+  },
   "version": "0.2.1"
 }
