@@ -20,6 +20,10 @@
     <Compile Include="test\chat.test.js">
       <TestFramework>Mocha</TestFramework>
     </Compile>
+    <Compile Include="test\dcc.test.js">
+      <SubType>Code</SubType>
+      <TestFramework>Mocha</TestFramework>
+    </Compile>
     <Content Include=".eslintignore" />
     <Content Include=".eslintrc.json" />
     <Content Include=".gitignore" />
