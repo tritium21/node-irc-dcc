@@ -1,8 +1,23 @@
+//  Copyright(C) 2016 Alexander Walters
+//
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program.If not, see <http://www.gnu.org/licenses/>.
+
 var assert = require('assert');
 var simple = require('simple-mock');
+var Chat = require('../lib/chat');
 
 describe('Chat', () => {
-    var Chat = require('../lib/chat');
     var stub_con = {
         addListener: simple.stub(),
         emit: simple.stub(),
@@ -16,26 +31,32 @@ describe('Chat', () => {
         stub_con.write.reset();
         stub_con.end.reset();
     });
-    it('should listen for data events', () => {
-        var chat = new Chat(stub_con);
-        assert.equal(stub_con.addListener.lastCall.args[0], "data");
+    describe('(constructor)', () => {
+        it('should listen for data events', () => {
+            var chat = new Chat(stub_con);
+            assert.equal(stub_con.addListener.lastCall.args[0], "data");
+        });
+        it('should emit lines', () => {
+            var chat = new Chat(stub_con);
+            simple.mock(chat, "emit");
+            var hnd = stub_con.addListener.lastCall.args[1];
+            hnd("this is a");
+            hnd(" line\r\n");
+            assert.deepEqual(chat.emit.lastCall.args, ["line", "this is a line"]);
+        });
     });
-    it('should emit lines', () => {
-        var chat = new Chat(stub_con);
-        simple.mock(chat, "emit");
-        var hnd = stub_con.addListener.lastCall.args[1];
-        hnd("this is a");
-        hnd(" line\r\n");
-        assert.deepEqual(chat.emit.lastCall.args, ["line", "this is a line"]);
+    describe('#say()', () => {
+        it('should write without error', () => {
+            var chat = new Chat(stub_con);
+            chat.say("this is a test")
+            assert.equal(stub_con.write.lastCall.args, "this is a test\r\n");
+        });
     });
-    it('should write without error', () => {
-        var chat = new Chat(stub_con);
-        chat.say("this is a test")
-        assert.equal(stub_con.write.lastCall.args, "this is a test\r\n");
-    });
-    it('should disconnect with #end', () => {
-        var chat = new Chat(stub_con);
-        chat.disconnect();
-        assert.equal(stub_con.end.callCount, 1);
+    describe('#disconnect()', () => {
+        it('should disconnect with #end', () => {
+            var chat = new Chat(stub_con);
+            chat.disconnect();
+            assert.equal(stub_con.end.callCount, 1);
+        });
     });
 });
