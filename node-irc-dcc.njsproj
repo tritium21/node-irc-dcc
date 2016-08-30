@@ -27,6 +27,7 @@
     <Content Include=".eslintignore" />
     <Content Include=".eslintrc.json" />
     <Content Include=".gitignore" />
+    <Content Include=".istanbul.yml" />
     <Content Include=".npmignore" />
     <Content Include=".travis.yml" />
     <Content Include="appveyor.yml" />
