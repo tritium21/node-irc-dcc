@@ -36,12 +36,20 @@ describe('Chat', () => {
             var chat = new Chat(stub_con);
             assert.equal(stub_con.addListener.lastCall.args[0], "data");
         });
-        it('should emit lines', () => {
+        it('should emit lines (from string)', () => {
             var chat = new Chat(stub_con);
             simple.mock(chat, "emit");
             var hnd = stub_con.addListener.lastCall.args[1];
             hnd("this is a");
             hnd(" line\r\n");
+            assert.deepEqual(chat.emit.lastCall.args, ["line", "this is a line"]);
+        });
+        it('should emit lines (from buffer)', () => {
+            var chat = new Chat(stub_con);
+            simple.mock(chat, "emit");
+            var hnd = stub_con.addListener.lastCall.args[1];
+            hnd(new Buffer("this is a", "utf8"));
+            hnd(new Buffer(" line\r\n", "utf8"));
             assert.deepEqual(chat.emit.lastCall.args, ["line", "this is a line"]);
         });
     });
