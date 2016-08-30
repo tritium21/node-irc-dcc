@@ -173,7 +173,7 @@ describe('DCC', () => {
                 done();
             });
         });
-        it('should not callback with 0', (done) => {
+        it('should callback with 2000', (done) => {
             var dcc = new DCC(stub_client, { ports: [2000, 2020] });
             simple.mock(netUtil, 'getUnusedPort').callbackWith(2000)
             dcc.getPort((port) => {
@@ -183,7 +183,7 @@ describe('DCC', () => {
         });
     });
     describe('#getPortIP', () => {
-        it('should callback with 192.168.1.100', (done) => {
+        it('should callback with 192.168.1.100:2000', (done) => {
             var dcc = new DCC(stub_client, { ports: [2000, 2020] });
             simple.mock(netUtil, 'getUnusedPort').callbackWith(2000)
             simple.mock(netUtil, 'getMyIP').callbackWith('192.168.1.100')
