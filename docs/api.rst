@@ -1,4 +1,4 @@
-﻿===
+===
 API
 ===
 
@@ -21,7 +21,7 @@ DCC
             timeout: 30000
         }
 
-    ``ports`` is a length-2 indexable object (array).  The first and second objects in that
+    ``ports`` is a length-2 array.  The first and second objects in that
     array should be the start and end of a port range that you want incoming DCC connections
     to bind to.  If undefined or null, the default of ``0`` is used (the OS picks a port).
 
