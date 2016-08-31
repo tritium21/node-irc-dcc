@@ -1,4 +1,4 @@
-/* global afterEach, it, describe */
+/* global after, afterEach, before, beforeEach, it, describe */
 //  Copyright(C) 2016 Alexander Walters
 //
 //  This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ describe("fromIpify", function () {
     var fakeEE = {
         on: simple.stub()
     };
-    var get_stub = simple.stub()
+    var get_stub = simple.stub();
     before(() => {
         simple.mock(http, "get", get_stub);
     });
@@ -36,7 +36,7 @@ describe("fromIpify", function () {
     });
     after(() => {
         simple.restore();
-    })
+    });
     it("should not set localAddress", () => {
         netUtil.fromIpify(null, () => {});
         var expected = { "host": "api.ipify.org", "port": 80, "path": "/" };
@@ -68,33 +68,36 @@ describe("getRandomInt", () => {
     after(() => {
         simple.restore();
     });
-    it('should just be doing max+1 right now', () => {
+    it("should just be doing max+1 right now", () => {
         assert.equal(netUtil.getRandomInt(2000, 2020), 2021);
     });
 });
 describe("getUnusedPort", () => {
-    var fakeCreate = simple.stub();
-    var fakeRand = simple.stub();
-    var fakeServer = {
-        once: simple.stub(),
-        listen: simple.stub(),
-        close: simple.stub(),
-        on: simple.stub()
-    };
-    before(() => {
+    var fakeCreate;
+    var fakeRand;
+    var fakeServer;
+    beforeEach(() => {
+        fakeCreate = simple.stub();
+        fakeRand = simple.stub();
+        fakeServer = {
+            once: simple.stub(),
+            listen: simple.stub(),
+            close: simple.stub(),
+            on: simple.stub()
+        };
         simple.mock(net, "createServer", fakeCreate);
         simple.mock(netUtil, "getRandomInt", fakeRand);
     });
     afterEach(() => {
+        simple.restore();
         fakeCreate.reset();
         fakeRand.reset();
         fakeServer.once.reset();
         fakeServer.on.reset();
         fakeServer.listen.reset();
         fakeServer.close.reset();
-    });
-    after(() => {
-        simple.restore();
+        fakeServer.on.loop = true;
+        fakeServer.once.loop = true;
     });
     it("should call getRandomInt with 2000, 2020", () => {
         fakeCreate.returnWith(fakeServer);
@@ -109,17 +112,21 @@ describe("getUnusedPort", () => {
         fakeCreate.returnWith(fakeServer);
         netUtil.getUnusedPort(options, (port) => {
             assert.equal(port, 2001);
-            done()
+            done();
         });
     });
-    it("should recurse and callback with 2001", (done) => {
+    it("should recurse and callback with 2002", (done) => {
         var options = { min: 2000, max: 2020, localAddress: "192.168.1.100" };
-        fakeRand.returnWith(9999).returnWith(2001);
-        netUtil.getUnusedPort(options, (port) => {
-            assert.equal(port, 2001);
-            done()
-        });
+        fakeRand.returnWith(9999).returnWith(2002);
+        fakeServer.listen.callbackWith();
+        fakeServer.on.loop = false;
+        fakeServer.once.loop = false;
         fakeServer.on.callbackWith();
-        fakeServer.once.callbackWith();
+        fakeServer.once.callFn(() => { }).callbackWith();
+        fakeCreate.returnWith(fakeServer);
+        netUtil.getUnusedPort(options, (port) => {
+            assert.equal(port, 2002);
+            done();
+        });
     });
 });
