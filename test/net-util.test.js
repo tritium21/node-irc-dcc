@@ -18,11 +18,84 @@ const assert = require("assert");
 const simple = require("simple-mock");
 const netUtil = require("../lib/net-util");
 
+const dns = require("dns");
 const http = require("http");
 const net = require("net");
+const ip = require("ip");
+
+describe("getMyIP", () => {
+    before(() => {
+        simple.mock(net, "isIPv4");
+        net.isIPv4.loop = false;
+        simple.mock(ip, "isPrivate");
+        ip.isPrivate.loop = false;
+        simple.mock(netUtil, "fromIpify");
+        netUtil.fromIpify.loop = false;
+        simple.mock(dns, "lookup");
+        dns.lookup.loop = false;
+    });
+    afterEach(() => {
+        netUtil.ipcache = null;
+    });
+    after(() => {
+        simple.restore();
+    });
+    it("should callback with 192.168.1.100 (overide ipcache)", (done) => {
+        netUtil.ipcache = "192.168.1.100";
+        netUtil.getMyIP(null, (addr) => {
+            assert.equal(addr, "192.168.1.100");
+            done();
+        });
+    });
+    it("should callback with invalid (from argument)", (done) => {
+        net.isIPv4.returnWith(true);
+        ip.isPrivate.returnWith(false);
+        netUtil.getMyIP("invalid", (addr) => {
+            assert.equal(addr, "invalid");
+            assert(!netUtil.fromIpify.called);
+            done();
+        });
+    });
+    it("should callback with 192.168.1.100 (from ipify)", (done) => {
+        net.isIPv4.returnWith(true).returnWith(true);
+        ip.isPrivate.returnWith(true).returnWith(true);
+        netUtil.fromIpify.callbackWith("192.168.1.100")
+        netUtil.getMyIP("invalid", (addr) => {
+            assert.equal(addr, "192.168.1.100");
+            done();
+        });
+    });
+    it("should callback with 192.168.1.100 (from ipify via dns, err)", (done) => {
+        net.isIPv4.returnWith(false).returnWith(false);
+        dns.lookup.callbackWith(new Error(), null);
+        netUtil.fromIpify.callbackWith("192.168.1.100")
+        netUtil.getMyIP("invalid", (addr) => {
+            assert.equal(addr, "192.168.1.100");
+            done();
+        });
+    });
+    it("should callback with 192.168.1.100 (from ipify via dns, private)", (done) => {
+        net.isIPv4.returnWith(false).returnWith(false);
+        ip.isPrivate.returnWith(true);
+        dns.lookup.callbackWith(null, null);
+        netUtil.fromIpify.callbackWith("192.168.1.100")
+        netUtil.getMyIP("invalid", (addr) => {
+            assert.equal(addr, "192.168.1.100");
+            done();
+        });
+    });
+    it("should callback with 192.168.1.100 (from dns)", (done) => {
+        net.isIPv4.returnWith(false).returnWith(false);
+        ip.isPrivate.returnWith(false);
+        dns.lookup.callbackWith(null, "192.168.1.100");
+        netUtil.getMyIP("invalid", (addr) => {
+            assert.equal(addr, "192.168.1.100");
+            done();
+        });
+    });
+});
 
 describe("fromIpify", function () {
-    
     var fakeEE = {
         on: simple.stub()
     };
@@ -73,31 +146,33 @@ describe("getRandomInt", () => {
     });
 });
 describe("getUnusedPort", () => {
-    var fakeCreate;
-    var fakeRand;
-    var fakeServer;
-    beforeEach(() => {
-        fakeCreate = simple.stub();
-        fakeRand = simple.stub();
-        fakeServer = {
-            once: simple.stub(),
-            listen: simple.stub(),
-            close: simple.stub(),
-            on: simple.stub()
-        };
+    var fakeCreate = simple.stub();
+    var fakeRand = simple.stub();
+    var fakeServer = {
+        once: simple.stub(),
+        listen: simple.stub(),
+        close: () => { },
+        on: simple.stub()
+    };
+    fakeServer.listen.loop = false;
+    fakeServer.on.loop = false;
+    fakeServer.once.loop = false;
+    fakeCreate.loop = false;
+    fakeRand.loop = false;
+
+    before(() => {
         simple.mock(net, "createServer", fakeCreate);
         simple.mock(netUtil, "getRandomInt", fakeRand);
     });
-    afterEach(() => {
+    after(() => {
         simple.restore();
+    });
+    afterEach(() => {
         fakeCreate.reset();
         fakeRand.reset();
         fakeServer.once.reset();
         fakeServer.on.reset();
         fakeServer.listen.reset();
-        fakeServer.close.reset();
-        fakeServer.on.loop = true;
-        fakeServer.once.loop = true;
     });
     it("should call getRandomInt with 2000, 2020", () => {
         fakeCreate.returnWith(fakeServer);
@@ -118,12 +193,10 @@ describe("getUnusedPort", () => {
     it("should recurse and callback with 2002", (done) => {
         var options = { min: 2000, max: 2020, localAddress: "192.168.1.100" };
         fakeRand.returnWith(9999).returnWith(2002);
-        fakeServer.listen.callbackWith();
-        fakeServer.on.loop = false;
-        fakeServer.once.loop = false;
+        fakeServer.listen.callbackWith().callbackWith();
         fakeServer.on.callbackWith();
         fakeServer.once.callFn(() => { }).callbackWith();
-        fakeCreate.returnWith(fakeServer);
+        fakeCreate.returnWith(fakeServer).returnWith(fakeServer);
         netUtil.getUnusedPort(options, (port) => {
             assert.equal(port, 2002);
             done();
