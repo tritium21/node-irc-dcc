@@ -24,6 +24,10 @@
       <SubType>Code</SubType>
       <TestFramework>Mocha</TestFramework>
     </Compile>
+    <Compile Include="test\net-util.test.js">
+      <SubType>Code</SubType>
+      <TestFramework>Mocha</TestFramework>
+    </Compile>
     <Content Include=".eslintignore" />
     <Content Include=".eslintrc.json" />
     <Content Include=".gitignore" />
