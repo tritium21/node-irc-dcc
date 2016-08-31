@@ -23,13 +23,17 @@ describe("fromIpify", function () {
     var fakeEE = {
         on: simple.stub()
     };
+    var get_stub = simple.stub()
     beforeEach(() => {
-        simple.mock(http, "get");
+        simple.mock(http, "get", get_stub);
     });
     afterEach(() => {
-        simple.restore();
+        get_stub.reset();
         fakeEE.on.reset();
     });
+    after(() => {
+        simple.restore();
+    })
     it("should not set localAddress", () => {
         netUtil.fromIpify(null, () => {});
         var expected = { "host": "api.ipify.org", "port": 80, "path": "/" };
