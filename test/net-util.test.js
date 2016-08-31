@@ -18,13 +18,16 @@ const assert = require("assert");
 const simple = require("simple-mock");
 const netUtil = require("../lib/net-util");
 
+const http = require("http");
+const net = require("net");
+
 describe("fromIpify", function () {
-    var http = require("http");
+    
     var fakeEE = {
         on: simple.stub()
     };
     var get_stub = simple.stub()
-    beforeEach(() => {
+    before(() => {
         simple.mock(http, "get", get_stub);
     });
     afterEach(() => {
@@ -56,5 +59,67 @@ describe("fromIpify", function () {
             assert.equal(ip, "192.168.1.100");
             done();
         });
+    });
+});
+describe("getRandomInt", () => {
+    before(() => {
+        simple.mock(Math, "random", () => { return 1; });
+    });
+    after(() => {
+        simple.restore();
+    });
+    it('should just be doing max+1 right now', () => {
+        assert.equal(netUtil.getRandomInt(2000, 2020), 2021);
+    });
+});
+describe("getUnusedPort", () => {
+    var fakeCreate = simple.stub();
+    var fakeRand = simple.stub();
+    var fakeServer = {
+        once: simple.stub(),
+        listen: simple.stub(),
+        close: simple.stub(),
+        on: simple.stub()
+    };
+    before(() => {
+        simple.mock(net, "createServer", fakeCreate);
+        simple.mock(netUtil, "getRandomInt", fakeRand);
+    });
+    afterEach(() => {
+        fakeCreate.reset();
+        fakeRand.reset();
+        fakeServer.once.reset();
+        fakeServer.on.reset();
+        fakeServer.listen.reset();
+        fakeServer.close.reset();
+    });
+    after(() => {
+        simple.restore();
+    });
+    it("should call getRandomInt with 2000, 2020", () => {
+        fakeCreate.returnWith(fakeServer);
+        netUtil.getUnusedPort({ min: 2000, max: 2020, localAddress: "192.168.1.100" }, () => { });
+        assert.deepEqual(fakeRand.lastCall.args, [2000, 2020]);
+    });
+    it("should callback with 2001", (done) => {
+        var options = { min: 2000, max: 2020, localAddress: "192.168.1.100" };
+        fakeRand.returnWith(2001);
+        fakeServer.listen.callbackWith();
+        fakeServer.once.callbackWith();
+        fakeCreate.returnWith(fakeServer);
+        netUtil.getUnusedPort(options, (port) => {
+            assert.equal(port, 2001);
+            done()
+        });
+    });
+    it("should recurse and callback with 2001", (done) => {
+        var options = { min: 2000, max: 2020, localAddress: "192.168.1.100" };
+        fakeRand.returnWith(9999).returnWith(2001);
+        netUtil.getUnusedPort(options, (port) => {
+            assert.equal(port, 2001);
+            done()
+        });
+        fakeServer.on.callbackWith();
+        fakeServer.once.callbackWith();
     });
 });
