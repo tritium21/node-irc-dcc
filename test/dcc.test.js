@@ -1,3 +1,4 @@
+/* global afterEach, it, describe */
 //  Copyright(C) 2016 Alexander Walters
 //
 //  This program is free software: you can redistribute it and/or modify
@@ -13,183 +14,185 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.If not, see <http://www.gnu.org/licenses/>.
 
-var assert = require('assert');
-var simple = require('simple-mock');
-var DCC = require('../lib/dcc');
-var netUtil = require('../lib/net-util');
-var ip = require('ip')
+var assert = require("assert");
+var simple = require("simple-mock");
+var DCC = require("../lib/dcc");
+var netUtil = require("../lib/net-util");
+var ip = require("ip");
 
-describe('DCC.parseDCC()', function() {
-    it('should return null', function () {
-        var args = DCC.parseDCC('This is not a dcc message')
+describe("DCC.parseDCC()", function () {
+    it("should return null", function () {
+        var args = DCC.parseDCC("This is not a dcc message");
         assert.equal(args, null);
-    })
-    it('should return a send', function () {
-        var args = DCC.parseDCC('DCC SEND foo_bar.pdf 3232235876 6500 95871')
+    });
+    it("should return a send", function () {
+        var args = DCC.parseDCC("DCC SEND foo_bar.pdf 3232235876 6500 95871");
         var expected = {
-            type: 'send',
+            type: "send",
             long: 3232235876,
-            host: '192.168.1.100',
+            host: "192.168.1.100",
             port: 6500,
-            filename: 'foo_bar.pdf',
+            filename: "foo_bar.pdf",
             length: 95871
-        }
+        };
         assert.deepEqual(args, expected);
-    })
-    it('should return a chat', function () {
-        var args = DCC.parseDCC('DCC CHAT chat 3232235876 6500')
+    });
+    it("should return a chat", function () {
+        var args = DCC.parseDCC("DCC CHAT chat 3232235876 6500");
         var expected = {
-            type: 'chat',
+            type: "chat",
             long: 3232235876,
-            host: '192.168.1.100',
+            host: "192.168.1.100",
             port: 6500,
-        }
+        };
         assert.deepEqual(args, expected);
-    })
-    it('should return an accept', function () {
-        var args = DCC.parseDCC('DCC ACCEPT foo_bar.pdf 6500 31565')
+    });
+    it("should return an accept", function () {
+        var args = DCC.parseDCC("DCC ACCEPT foo_bar.pdf 6500 31565");
         var expected = {
-            type: 'accept',
+            type: "accept",
             port: 6500,
-            filename: 'foo_bar.pdf',
+            filename: "foo_bar.pdf",
             position: 31565
-        }
+        };
         assert.deepEqual(args, expected);
-    })
-    it('should return a resume', function () {
-        var args = DCC.parseDCC('DCC RESUME foo_bar.pdf 6500 31565')
+    });
+    it("should return a resume", function () {
+        var args = DCC.parseDCC("DCC RESUME foo_bar.pdf 6500 31565");
         var expected = {
-            type: 'resume',
+            type: "resume",
             port: 6500,
-            filename: 'foo_bar.pdf',
+            filename: "foo_bar.pdf",
             position: 31565
-        }
+        };
         assert.deepEqual(args, expected);
-    })
-})
+    });
+});
 
-describe('DCC', () => {
+describe("DCC", () => {
     var stub_client = {
         opt: {},
         addListener: simple.stub(),
         emit: simple.stub(),
     };
     afterEach(() => {
-        simple.restore()
+        simple.restore();
         stub_client.addListener.reset();
         stub_client.emit.reset();
     });
-    describe('(constructor)', () => {
-        describe('Client.addListener', () => {
-            it('should addListener once', () => {
-                var dcc = new DCC(stub_client, {});
+    describe("(constructor)", () => {
+        describe("Client.addListener", () => {
+            it("should addListener once", () => {
+                new DCC(stub_client, {});
                 assert.equal(stub_client.addListener.callCount, 1);
             });
-            it('should addListener ctcp-privmsg', () => {
-                var dcc = new DCC(stub_client, {});
+            it("should addListener ctcp-privmsg", () => {
+                new DCC(stub_client, {});
                 assert.equal(stub_client.addListener.lastCall.args[0], "ctcp-privmsg");
             });
         });
-        describe('Client.emit', () => {
-            it('should emit DCC SEND', () => {
-                var dcc = new DCC(stub_client, {});
+        describe("Client.emit", () => {
+            it("should emit DCC SEND", () => {
+                new DCC(stub_client, {});
                 var hnd = stub_client.addListener.lastCall.args[1];
                 var expected = [
-                    'dcc-send',
-                    'user',
+                    "dcc-send",
+                    "user",
                     {
-                        type: 'send',
+                        type: "send",
                         long: 3232235876,
-                        host: '192.168.1.100',
+                        host: "192.168.1.100",
                         port: 6500,
-                        filename: 'foo_bar.pdf',
+                        filename: "foo_bar.pdf",
                         length: 95871
                     },
-                    'message'
-                ]
-                hnd('user', null, 'DCC SEND foo_bar.pdf 3232235876 6500 95871', 'message');
+                    "message"
+                ];
+                hnd("user", null, "DCC SEND foo_bar.pdf 3232235876 6500 95871", "message");
                 assert.deepEqual(stub_client.emit.lastCall.args, expected);
             });
-            it('should not emit anything', () => {
-                var dcc = new DCC(stub_client, {});
+            it("should not emit anything", () => {
+                new DCC(stub_client, {});
                 var hnd = stub_client.addListener.lastCall.args[1];
-                hnd('user', null, 'PING 12345678', 'message');
+                hnd("user", null, "PING 12345678", "message");
                 assert.equal(stub_client.emit.callCount, 0);
             });
         });
-        describe('Attributes', () => {
-            it('should set the ports to 0', () => {
+        describe("Attributes", () => {
+            it("should set the ports to 0 (automatic)", () => {
                 var dcc = new DCC(stub_client, {});
-                assert.equal(dcc.ports, 0)
+                assert.equal(dcc.ports, 0);
             });
-            it('should set the ports to [2000, 2020]', () => {
+            it("should set the ports to [2000, 2020] (from options)", () => {
                 var dcc = new DCC(stub_client, { ports: [2000, 2020] });
-                assert.deepEqual(dcc.ports, [2000, 2020])
+                assert.deepEqual(dcc.ports, [2000, 2020]);
             });
-            it('should set localAddress to 192.168.1.100 (automatic)', () => {
-                simple.mock(ip, 'address').returnWith('192.168.1.100');
+            it("should set localAddress to 192.168.1.100 (automatic)", () => {
+                simple.mock(ip, "address").returnWith("192.168.1.100");
                 var dcc = new DCC(stub_client, {});
-                assert.equal(dcc.localAddress, '192.168.1.100');
+                assert.equal(dcc.localAddress, "192.168.1.100");
             });
-            it('should set localAddress to 192.168.1.100 (from client)', () => {
+            it("should set localAddress to 192.168.1.100 (from client)", () => {
                 var temp = {
-                    opt: { localAddress: '192.168.1.100' },
+                    opt: { localAddress: "192.168.1.100" },
                     addListener: simple.stub(),
                     emit: simple.stub(),
                 };
+                simple.mock(ip, "address").returnWith("INVALID");
                 var dcc = new DCC(temp, {});
-                assert.equal(dcc.localAddress, '192.168.1.100');
+                assert.equal(dcc.localAddress, "192.168.1.100");
             });
-            it('should set localAddress to 192.168.1.100 (from options)', () => {
-                var dcc = new DCC(stub_client, { localAddress: '192.168.1.100' });
-                assert.equal(dcc.localAddress, '192.168.1.100');
+            it("should set localAddress to 192.168.1.100 (from options)", () => {
+                simple.mock(ip, "address").returnWith("INVALID");
+                var dcc = new DCC(stub_client, { localAddress: "192.168.1.100" });
+                assert.equal(dcc.localAddress, "192.168.1.100");
             });
-            it('should set the timeout to 30000', () => {
+            it("should set the timeout to 30000 (automatic)", () => {
                 var dcc = new DCC(stub_client, {});
                 assert.equal(dcc.timeout, 30000);
             });
-            it('should set the timeout to 8675309 (from options)', () => {
+            it("should set the timeout to 8675309 (from options)", () => {
                 var dcc = new DCC(stub_client, { timeout: 8675309 });
                 assert.equal(dcc.timeout, 8675309);
             });
         });
     });
-    describe('#getIP', () => {
-        it('should callback with 192.168.1.100', (done) => {
+    describe("#getIP", () => {
+        it("should callback with 192.168.1.100", (done) => {
             var dcc = new DCC(stub_client, {});
-            simple.mock(netUtil, 'getMyIP').callbackWith('192.168.1.100')
+            simple.mock(netUtil, "getMyIP").callbackWith("192.168.1.100");
             dcc.getIP((host) => {
-                assert.equal(host, '192.168.1.100');
+                assert.equal(host, "192.168.1.100");
                 done();
             });
         });
     });
-    describe('#getPort', () => {
-        it('should callback with 0 (options.ports: 0)', (done) => {
+    describe("#getPort", () => {
+        it("should callback with 0 (options.ports: 0)", (done) => {
             var dcc = new DCC(stub_client, {ports: 0});
-            simple.mock(netUtil, 'getUnusedPort').callbackWith(99999)
+            simple.mock(netUtil, "getUnusedPort").callbackWith(99999);
             dcc.getPort((port) => {
                 assert.equal(port, 0);
                 done();
             });
         });
-        it('should callback with 2000', (done) => {
+        it("should callback with 2000", (done) => {
             var dcc = new DCC(stub_client, { ports: [2000, 2020] });
-            simple.mock(netUtil, 'getUnusedPort').callbackWith(2000)
+            simple.mock(netUtil, "getUnusedPort").callbackWith(2000);
             dcc.getPort((port) => {
                 assert.equal(port, 2000);
                 done();
             });
         });
     });
-    describe('#getPortIP', () => {
-        it('should callback with 192.168.1.100:2000', (done) => {
+    describe("#getPortIP", () => {
+        it("should callback with 192.168.1.100:2000", (done) => {
             var dcc = new DCC(stub_client, { ports: [2000, 2020] });
-            simple.mock(netUtil, 'getUnusedPort').callbackWith(2000)
-            simple.mock(netUtil, 'getMyIP').callbackWith('192.168.1.100')
+            simple.mock(netUtil, "getUnusedPort").callbackWith(2000);
+            simple.mock(netUtil, "getMyIP").callbackWith("192.168.1.100");
             dcc.getPortIP((details) => {
                 var expected = {
-                    host: '192.168.1.100',
+                    host: "192.168.1.100",
                     long: 3232235876,
                     port: 2000
                 };

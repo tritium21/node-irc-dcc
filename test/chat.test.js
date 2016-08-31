@@ -1,3 +1,4 @@
+/* global afterEach, it, describe */
 //  Copyright(C) 2016 Alexander Walters
 //
 //  This program is free software: you can redistribute it and/or modify
@@ -13,11 +14,11 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.If not, see <http://www.gnu.org/licenses/>.
 
-var assert = require('assert');
-var simple = require('simple-mock');
-var Chat = require('../lib/chat');
+var assert = require("assert");
+var simple = require("simple-mock");
+var Chat = require("../lib/chat");
 
-describe('Chat', () => {
+describe("Chat", () => {
     var stub_con = {
         addListener: simple.stub(),
         emit: simple.stub(),
@@ -26,17 +27,17 @@ describe('Chat', () => {
     };
 
     afterEach(() => {
-        simple.restore()
+        simple.restore();
         stub_con.addListener.reset();
         stub_con.write.reset();
         stub_con.end.reset();
     });
-    describe('(constructor)', () => {
-        it('should listen for data events', () => {
-            var chat = new Chat(stub_con);
+    describe("(constructor)", () => {
+        it("should listen for data events", () => {
+            new Chat(stub_con);
             assert.equal(stub_con.addListener.lastCall.args[0], "data");
         });
-        it('should emit lines (from string)', () => {
+        it("should emit lines (from string)", () => {
             var chat = new Chat(stub_con);
             simple.mock(chat, "emit");
             var hnd = stub_con.addListener.lastCall.args[1];
@@ -44,7 +45,7 @@ describe('Chat', () => {
             hnd(" line\r\n");
             assert.deepEqual(chat.emit.lastCall.args, ["line", "this is a line"]);
         });
-        it('should emit lines (from buffer)', () => {
+        it("should emit lines (from buffer)", () => {
             var chat = new Chat(stub_con);
             simple.mock(chat, "emit");
             var hnd = stub_con.addListener.lastCall.args[1];
@@ -52,7 +53,7 @@ describe('Chat', () => {
             hnd(new Buffer(" line\r\n", "utf8"));
             assert.deepEqual(chat.emit.lastCall.args, ["line", "this is a line"]);
         });
-        it('should eat the error', () => {
+        it("should eat the error", () => {
             assert.doesNotThrow(() => {
                 var temp = {
                     addListener: simple.stub(),
@@ -64,27 +65,27 @@ describe('Chat', () => {
                 var chat = new Chat(temp);
                 var hnd = temp.addListener.lastCall.args[1];
                 simple.mock(chat, "emit").throwWith(new TypeError());
-                hnd('this is a line\r\n')
+                hnd("this is a line\r\n");
             }, TypeError);
         });
-        it('should not eat the error', () => {
+        it("should not eat the error", () => {
             assert.throws(() => {
                 var chat = new Chat(stub_con);
                 var hnd = stub_con.addListener.lastCall.args[1];
                 simple.mock(chat, "emit").throwWith(new TypeError());
-                hnd('this is a line\r\n');
+                hnd("this is a line\r\n");
             }, TypeError);
         });
     });
-    describe('#say()', () => {
-        it('should write without error', () => {
+    describe("#say()", () => {
+        it("should write without error", () => {
             var chat = new Chat(stub_con);
-            chat.say("this is a test")
+            chat.say("this is a test");
             assert.equal(stub_con.write.lastCall.args, "this is a test\r\n");
         });
     });
-    describe('#disconnect()', () => {
-        it('should disconnect with #end', () => {
+    describe("#disconnect()", () => {
+        it("should disconnect with #end", () => {
             var chat = new Chat(stub_con);
             chat.disconnect();
             assert.equal(stub_con.end.callCount, 1);
