@@ -96,15 +96,20 @@ describe("getMyIP", () => {
 });
 
 describe("fromIpify", function () {
-    var fakeEE = {
-        on: simple.stub()
-    };
-    var get_stub = simple.stub();
+    var fakeEE;
+
     before(() => {
-        simple.mock(http, "get", get_stub);
+        fakeEE = {
+            on: simple.stub()
+        };
+        fakeEE.loop = false;
+
+        simple.mock(http, "get");
+        http.get.callbackWith(fakeEE);
+        http.get.loop = true;
     });
     afterEach(() => {
-        get_stub.reset();
+        http.get.reset();
         fakeEE.on.reset();
     });
     after(() => {
@@ -120,13 +125,7 @@ describe("fromIpify", function () {
         var expected = { "host": "api.ipify.org", "port": 80, "path": "/", "localAddress": "192.168.1.100"};
         assert.deepEqual(http.get.lastCall.args[0], expected);
     });
-    it("should bind to data", () => {
-        http.get.callbackWith(fakeEE);
-        netUtil.fromIpify(null, () => { });
-        assert.equal(fakeEE.on.lastCall.args[0], "data");
-    });
     it("should callback with 192.168.1.100", (done) => {
-        http.get.callbackWith(fakeEE);
         fakeEE.on.callbackWith("192.168.1.100");
         netUtil.fromIpify(null, (ip) => {
             assert.equal(ip, "192.168.1.100");
@@ -146,45 +145,45 @@ describe("getRandomInt", () => {
     });
 });
 describe("getUnusedPort", () => {
-    var fakeCreate = simple.stub();
-    var fakeRand = simple.stub();
-    var fakeServer = {
-        once: simple.stub(),
-        listen: simple.stub(),
-        close: () => { },
-        on: simple.stub()
-    };
-    fakeServer.listen.loop = false;
-    fakeServer.on.loop = false;
-    fakeServer.once.loop = false;
-    fakeCreate.loop = false;
-    fakeRand.loop = false;
+    var fakeServer;
 
     before(() => {
-        simple.mock(net, "createServer", fakeCreate);
-        simple.mock(netUtil, "getRandomInt", fakeRand);
+        fakeServer = {
+            once: simple.stub(),
+            listen: simple.stub(),
+            close: () => { },
+            on: simple.stub()
+        };
+        fakeServer.listen.loop = false;
+        fakeServer.on.loop = false;
+        fakeServer.once.loop = false;
+
+        simple.mock(net, "createServer");
+        net.createServer.loop = false;
+        simple.mock(netUtil, "getRandomInt");
+        netUtil.getRandomInt.loop = false;
     });
     after(() => {
         simple.restore();
     });
     afterEach(() => {
-        fakeCreate.reset();
-        fakeRand.reset();
+        net.createServer.reset();
+        netUtil.getRandomInt.reset();
         fakeServer.once.reset();
         fakeServer.on.reset();
         fakeServer.listen.reset();
     });
     it("should call getRandomInt with 2000, 2020", () => {
-        fakeCreate.returnWith(fakeServer);
+        net.createServer.returnWith(fakeServer);
         netUtil.getUnusedPort({ min: 2000, max: 2020, localAddress: "192.168.1.100" }, () => { });
-        assert.deepEqual(fakeRand.lastCall.args, [2000, 2020]);
+        assert.deepEqual(netUtil.getRandomInt.lastCall.args, [2000, 2020]);
     });
     it("should callback with 2001", (done) => {
         var options = { min: 2000, max: 2020, localAddress: "192.168.1.100" };
-        fakeRand.returnWith(2001);
+        netUtil.getRandomInt.returnWith(2001);
         fakeServer.listen.callbackWith();
         fakeServer.once.callbackWith();
-        fakeCreate.returnWith(fakeServer);
+        net.createServer.returnWith(fakeServer);
         netUtil.getUnusedPort(options, (port) => {
             assert.equal(port, 2001);
             done();
@@ -192,11 +191,11 @@ describe("getUnusedPort", () => {
     });
     it("should recurse and callback with 2002", (done) => {
         var options = { min: 2000, max: 2020, localAddress: "192.168.1.100" };
-        fakeRand.returnWith(9999).returnWith(2002);
+        netUtil.getRandomInt.returnWith(9999).returnWith(2002);
         fakeServer.listen.callbackWith().callbackWith();
         fakeServer.on.callbackWith();
         fakeServer.once.callFn(() => { }).callbackWith();
-        fakeCreate.returnWith(fakeServer).returnWith(fakeServer);
+        net.createServer.returnWith(fakeServer).returnWith(fakeServer);
         netUtil.getUnusedPort(options, (port) => {
             assert.equal(port, 2002);
             done();
