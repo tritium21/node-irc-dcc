@@ -14,45 +14,43 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.If not, see <http://www.gnu.org/licenses/>.
 
-var assert = require("assert");
-var simple = require("simple-mock");
-var netUtil = require("../lib/net-util");
-const http = require("http");
+const assert = require("assert");
+const simple = require("simple-mock");
+const netUtil = require("../lib/net-util");
 
 describe("fromIpify", function () {
+    var http = require("http");
     var fakeEE = {
         on: simple.stub()
     };
-
+    beforeEach(() => {
+        simple.mock(http, "get");
+    });
     afterEach(() => {
         simple.restore();
         fakeEE.on.reset();
     });
     it("should not set localAddress", () => {
-        simple.mock(http, "get");
-        netUtil.fromIpify(null, () => { });
+        netUtil.fromIpify(null, () => {});
         var expected = { "host": "api.ipify.org", "port": 80, "path": "/" };
         assert.deepEqual(http.get.lastCall.args[0], expected);
     });
     it("should set localAddress", () => {
-        simple.mock(http, "get");
         netUtil.fromIpify("192.168.1.100", () => { });
         var expected = { "host": "api.ipify.org", "port": 80, "path": "/", "localAddress": "192.168.1.100"};
         assert.deepEqual(http.get.lastCall.args[0], expected);
     });
     it("should bind to data", () => {
-        simple.mock(http, "get");
+        http.get.callbackWith(fakeEE);
         netUtil.fromIpify(null, () => { });
-        http.get.lastCall.args[1](fakeEE);
         assert.equal(fakeEE.on.lastCall.args[0], "data");
     });
     it("should callback with 192.168.1.100", (done) => {
-        simple.mock(http, "get");
+        http.get.callbackWith(fakeEE);
+        fakeEE.on.callbackWith("192.168.1.100");
         netUtil.fromIpify(null, (ip) => {
             assert.equal(ip, "192.168.1.100");
             done();
         });
-        http.get.lastCall.args[1](fakeEE);
-        fakeEE.on.lastCall.args[1]("192.168.1.100");
     });
 });
