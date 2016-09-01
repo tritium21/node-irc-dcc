@@ -4,3 +4,4 @@ bin/
 obj/
 docs/_build/
 coverage/
+typings/
