@@ -30,6 +30,7 @@
     "url": "git+https://github.com/tritium21/node-irc-dcc.git"
   },
   "scripts": {
+    "pegjs": "pegjs lib/parser.pegjs",
     "test": "istanbul cover ./node_modules/mocha/bin/_mocha",
     "travis": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
   },
