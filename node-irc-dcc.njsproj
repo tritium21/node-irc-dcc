@@ -60,6 +60,9 @@
     <Folder Include="example" />
     <Folder Include="lib" />
     <Folder Include="test\" />
+    <Folder Include="typings\" />
+    <Folder Include="typings\globals\" />
+    <Folder Include="typings\globals\ip\" />
     <Folder Include="typings\globals\irc\" />
     <Folder Include="typings\globals\istanbul\" />
     <Folder Include="typings\globals\mocha\" />
@@ -68,6 +71,7 @@
     <Folder Include="typings\globals\simple-mock\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="typings\globals\ip\index.d.ts" />
     <TypeScriptCompile Include="typings\globals\irc\index.d.ts" />
     <TypeScriptCompile Include="typings\globals\istanbul\index.d.ts" />
     <TypeScriptCompile Include="typings\globals\mocha\index.d.ts" />

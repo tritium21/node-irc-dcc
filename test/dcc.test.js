@@ -266,7 +266,8 @@ describe("DCC", () => {
             fakeServer = {
                 close: simple.stub(),
                 listen: simple.stub(),
-                address: simple.stub()
+                address: simple.stub(),
+                on: simple.stub()
             };
             fakeCon = {
                 addListener: simple.stub(),
@@ -282,6 +283,7 @@ describe("DCC", () => {
             fakeServer.close.loop = false;
             fakeServer.listen.loop = false;
             fakeServer.address.loop = false;
+            fakeServer.on.loop = false;
             fakeCon.addListener.loop = false;
             fakeCon.setTimeout.loop = false;
         });
@@ -296,11 +298,43 @@ describe("DCC", () => {
             fakeServer.close.reset();
             fakeServer.listen.reset();
             fakeServer.address.reset();
+            fakeServer.on.reset();
             fakeCon.addListener.reset();
             fakeCon.setTimeout.reset();
         });
         after(() => {
             simple.restore()
+        });
+        it("should callback with a fake connection", (done) => {
+            DCC.prototype.getPortIP.callbackWith({
+                host: "192.168.1.100",
+                long: 3232235876,
+                port: 2000
+            });
+            net.createServer.returnWith(fakeServer);
+            fakeServer.on.callbackWith(fakeCon);
+            var dcc = new DCC(fakeClient, {});
+            dcc.sendFile("to", "filename", 0, (err, con, pos) => {
+                assert.equal(fakeCon, con);
+                done();
+            });
+        });
+        it("should send a DCC SEND message", (done) => {
+            DCC.prototype.getPortIP.callbackWith({
+                host: "192.168.1.100",
+                long: 3232235876,
+                port: 2000
+            });
+            net.createServer.returnWith(fakeServer);
+            fakeServer.on.callbackWith(fakeCon);
+            fakeServer.address.returnWith({ port: 2000 });
+            fakeServer.listen.callbackWith();
+            var dcc = new DCC(fakeClient, {});
+            dcc.sendFile("to", "filename", 0, (err, con, pos) => { done(); });
+            assert.deepEqual(
+                fakeClient.ctcp.lastCall.args,
+                ["to", "privmsg", "DCC SEND filename 3232235876 2000 0"]
+            );
         });
     });
 });
