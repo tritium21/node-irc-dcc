@@ -5,3 +5,4 @@ obj/
 docs/_build/
 coverage/
 typings/
+/example

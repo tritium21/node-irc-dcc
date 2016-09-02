@@ -319,6 +319,30 @@ describe("DCC", () => {
                 done();
             });
         });
+        it("should remove listener", (done) => {
+            DCC.prototype.getPortIP.callbackWith({
+                host: "192.168.1.100",
+                long: 3232235876,
+                port: 2000
+            });
+            net.createServer.returnWith(fakeServer);
+            fakeServer.on.callbackWith(fakeCon);
+            var dcc = new DCC(fakeClient, {});
+            dcc.sendFile("to", "filename", 0, (err, con, pos) => { done(); });
+            assert(fakeClient.removeListener.called);
+        });
+        it("should close the server", (done) => {
+            DCC.prototype.getPortIP.callbackWith({
+                host: "192.168.1.100",
+                long: 3232235876,
+                port: 2000
+            });
+            net.createServer.returnWith(fakeServer);
+            fakeServer.on.callbackWith(fakeCon);
+            var dcc = new DCC(fakeClient, {});
+            dcc.sendFile("to", "filename", 0, (err, con, pos) => { done(); });
+            assert(fakeServer.close.called);
+        });
         it("should send a DCC SEND message", (done) => {
             DCC.prototype.getPortIP.callbackWith({
                 host: "192.168.1.100",
@@ -336,5 +360,100 @@ describe("DCC", () => {
                 ["to", "privmsg", "DCC SEND filename 3232235876 2000 0"]
             );
         });
+        it("should callback with pos == 0", (done) => {
+            DCC.prototype.getPortIP.callbackWith({
+                host: "192.168.1.100",
+                long: 3232235876,
+                port: 2000
+            });
+            net.createServer.returnWith(fakeServer);
+            fakeServer.on.callbackWith(fakeCon);
+            fakeServer.address.returnWith({ port: 2000 });
+            fakeServer.listen.callbackWith();
+            var dcc = new DCC(fakeClient, {});
+            dcc.sendFile("to", "filename", 0, (err, con, pos) => {
+                assert.equal(pos, 0);
+                done();
+            });
+        });
+        it("should not resume", (done) => {
+            DCC.prototype.getPortIP.callbackWith({
+                host: "192.168.1.100",
+                long: 3232235876,
+                port: 2000
+            });
+            net.createServer.returnWith(fakeServer);
+            fakeServer.address.returnWith({ port: 2000 });
+            fakeServer.listen.callbackWith();
+            fakeClient.once.callbackWith(
+                "to",
+                {
+                    filename: "filename2",
+                    port: 2000,
+                    position: 50
+                }
+            );
+            fakeServer.on.callbackWith(fakeCon);
+            var dcc = new DCC(fakeClient, {});
+            dcc.sendFile("to", "filename", 0, (err, con, pos) => {
+                done();
+            });
+            assert.deepEqual(
+                fakeClient.ctcp.lastCall.args,
+                ["to", "privmsg", "DCC SEND filename 3232235876 2000 0"]
+            );
+        });
+        it("should resume", (done) => {
+            DCC.prototype.getPortIP.callbackWith({
+                host: "192.168.1.100",
+                long: 3232235876,
+                port: 2000
+            });
+            net.createServer.returnWith(fakeServer);
+            fakeServer.address.returnWith({ port: 2000 });
+            fakeServer.listen.callbackWith();
+            fakeClient.once.callbackWith(
+                "to",
+                {
+                    filename: "filename",
+                    port: 2000,
+                    position: 50
+                }
+            );
+            fakeServer.on.callbackWith(fakeCon);
+            var dcc = new DCC(fakeClient, {});
+            dcc.sendFile("to", "filename", 0, (err, con, pos) => {
+                done();
+            });
+            assert.deepEqual(
+                fakeClient.ctcp.lastCall.args,
+                ["to", "privmsg", "DCC ACCEPT filename 2000 50"]
+            );
+        });
+        it("should callback with pos == 50", (done) => {
+            DCC.prototype.getPortIP.callbackWith({
+                host: "192.168.1.100",
+                long: 3232235876,
+                port: 2000
+            });
+            net.createServer.returnWith(fakeServer);
+            fakeServer.address.returnWith({ port: 2000 });
+            fakeServer.listen.callbackWith();
+            fakeClient.once.callbackWith(
+                "to",
+                {
+                    filename: "filename",
+                    port: 2000,
+                    position: 50
+                }
+            );
+            fakeServer.on.callbackWith(fakeCon);
+            var dcc = new DCC(fakeClient, {});
+            dcc.sendFile("to", "filename", 0, (err, con, pos) => {
+                assert.equal(pos, 50);
+                done();
+            });
+        });
+
     });
 });
