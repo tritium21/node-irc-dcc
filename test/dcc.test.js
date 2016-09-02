@@ -456,4 +456,51 @@ describe("DCC", () => {
         });
 
     });
+    describe("#acceptChat", () => {
+        var Chat;
+        var fakeClient;
+        var fakeCon;
+        before(() => {
+            fakeCon = {
+                on: simple.stub(),
+                addListener: simple.stub()
+            };
+            fakeClient = {
+                opt: {},
+                addListener: simple.stub(),
+                emit: simple.stub(),
+            };
+            simple.mock(net, "connect");
+            net.createServer.loop = false;
+            fakeCon.addListener.loop = false;
+            fakeCon.on.loop = false;
+        });
+        afterEach(() => {
+            net.connect.reset();
+            fakeCon.addListener.reset();
+            fakeCon.on.reset();
+        });
+        after(() => {
+            simple.restore()
+        });
+        it("should attempt to connect", () => {
+            var dcc = new DCC(fakeClient, { localAddress: "192.168.1.50" });
+            dcc.acceptChat("192.168.1.100", 1234, () => { });
+            var expected = {
+                host: "192.168.1.100",
+                port: 1234,
+                localAddress: "192.168.1.50"
+            }
+            assert.deepEqual(expected, net.connect.lastCall.args[0])
+        });
+        it("should callback with Chat of con", (done) => {
+            net.connect.returnWith(fakeCon);
+            fakeCon.on.callbackWith()
+            var dcc = new DCC(fakeClient, { localAddress: "192.168.1.50" });
+            dcc.acceptChat("192.168.1.100", 1234, (err, chat) => {
+                assert.equal(chat.connection, fakeCon);
+                done();
+            });
+        });
+    });
 });

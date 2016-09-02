@@ -44,8 +44,6 @@
     <Content Include="LICENSE.txt" />
     <Content Include="package.json" />
     <Content Include="README.md" />
-    <Content Include="example\data.txt" />
-    <Compile Include="example\test.js" />
     <Compile Include="lib\chat.js">
       <TestFramework>
       </TestFramework>
@@ -57,7 +55,6 @@
     <Folder Include="docs\" />
     <Folder Include="docs\_static\" />
     <Folder Include="docs\_templates\" />
-    <Folder Include="example" />
     <Folder Include="lib" />
     <Folder Include="test\" />
     <Folder Include="typings\" />
