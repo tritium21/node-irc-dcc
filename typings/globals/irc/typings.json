@@ -1,8 +1,0 @@
-{
-  "resolution": "main",
-  "tree": {
-    "src": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/816f03f3e4a97c0f4b5dd12bb1302a1d3b8b9f7c/irc/irc.d.ts",
-    "raw": "registry:dt/irc#0.3.12+20160521154229",
-    "typings": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/816f03f3e4a97c0f4b5dd12bb1302a1d3b8b9f7c/irc/irc.d.ts"
-  }
-}
