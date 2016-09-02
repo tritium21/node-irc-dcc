@@ -19,6 +19,7 @@ var simple = require("simple-mock");
 var DCC = require("../lib/dcc");
 var netUtil = require("../lib/net-util");
 var ip = require("ip");
+var net = require("net");
 
 describe("DCC.parseDCC()", function () {
     it("should return null", function () {
@@ -70,31 +71,42 @@ describe("DCC.parseDCC()", function () {
 });
 
 describe("DCC", () => {
-    var stub_client = {
-        opt: {},
-        addListener: simple.stub(),
-        emit: simple.stub(),
-    };
-    afterEach(() => {
-        simple.restore();
-        stub_client.addListener.reset();
-        stub_client.emit.reset();
-    });
     describe("(constructor)", () => {
+        var fakeClient;
+        before(() => {
+            fakeClient = {
+                opt: {},
+                addListener: simple.stub(),
+                removeListener: simple.stub(),
+                emit: simple.stub(),
+                ctcp: simple.stub(),
+                once: simple.stub()
+                };
+        });
+        afterEach(() => {
+            fakeClient.addListener.reset();
+            fakeClient.removeListener.reset();
+            fakeClient.emit.reset();
+            fakeClient.ctcp.reset();
+            fakeClient.once.reset();
+        });
+        after(() => {
+            simple.restore();
+        });
         describe("Client.addListener", () => {
             it("should addListener once", () => {
-                new DCC(stub_client, {});
-                assert.equal(stub_client.addListener.callCount, 1);
+                new DCC(fakeClient, {});
+                assert.equal(fakeClient.addListener.callCount, 1);
             });
             it("should addListener ctcp-privmsg", () => {
-                new DCC(stub_client, {});
-                assert.equal(stub_client.addListener.lastCall.args[0], "ctcp-privmsg");
+                new DCC(fakeClient, {});
+                assert.equal(fakeClient.addListener.lastCall.args[0], "ctcp-privmsg");
             });
         });
         describe("Client.emit", () => {
             it("should emit DCC SEND", () => {
-                new DCC(stub_client, {});
-                var hnd = stub_client.addListener.lastCall.args[1];
+                new DCC(fakeClient, {});
+                var hnd = fakeClient.addListener.lastCall.args[1];
                 var expected = [
                     "dcc-send",
                     "user",
@@ -109,27 +121,27 @@ describe("DCC", () => {
                     "message"
                 ];
                 hnd("user", null, "DCC SEND foo_bar.pdf 3232235876 6500 95871", "message");
-                assert.deepEqual(stub_client.emit.lastCall.args, expected);
+                assert.deepEqual(fakeClient.emit.lastCall.args, expected);
             });
             it("should not emit anything", () => {
-                new DCC(stub_client, {});
-                var hnd = stub_client.addListener.lastCall.args[1];
+                new DCC(fakeClient, {});
+                var hnd = fakeClient.addListener.lastCall.args[1];
                 hnd("user", null, "PING 12345678", "message");
-                assert.equal(stub_client.emit.callCount, 0);
+                assert.equal(fakeClient.emit.callCount, 0);
             });
         });
         describe("Attributes", () => {
             it("should set the ports to 0 (automatic)", () => {
-                var dcc = new DCC(stub_client, {});
+                var dcc = new DCC(fakeClient, {});
                 assert.equal(dcc.ports, 0);
             });
             it("should set the ports to [2000, 2020] (from options)", () => {
-                var dcc = new DCC(stub_client, { ports: [2000, 2020] });
+                var dcc = new DCC(fakeClient, { ports: [2000, 2020] });
                 assert.deepEqual(dcc.ports, [2000, 2020]);
             });
             it("should set localAddress to 192.168.1.100 (automatic)", () => {
                 simple.mock(ip, "address").returnWith("192.168.1.100");
-                var dcc = new DCC(stub_client, {});
+                var dcc = new DCC(fakeClient, {});
                 assert.equal(dcc.localAddress, "192.168.1.100");
             });
             it("should set localAddress to 192.168.1.100 (from client)", () => {
@@ -144,22 +156,28 @@ describe("DCC", () => {
             });
             it("should set localAddress to 192.168.1.100 (from options)", () => {
                 simple.mock(ip, "address").returnWith("INVALID");
-                var dcc = new DCC(stub_client, { localAddress: "192.168.1.100" });
+                var dcc = new DCC(fakeClient, { localAddress: "192.168.1.100" });
                 assert.equal(dcc.localAddress, "192.168.1.100");
-            });
-            it("should set the timeout to 30000 (automatic)", () => {
-                var dcc = new DCC(stub_client, {});
-                assert.equal(dcc.timeout, 30000);
-            });
-            it("should set the timeout to 8675309 (from options)", () => {
-                var dcc = new DCC(stub_client, { timeout: 8675309 });
-                assert.equal(dcc.timeout, 8675309);
             });
         });
     });
     describe("#getIP", () => {
+        var fakeClient;
+        before(() => {
+            fakeClient = {
+                opt: {},
+                addListener: simple.stub(),
+                removeListener: simple.stub(),
+                emit: simple.stub(),
+                ctcp: simple.stub(),
+                once: simple.stub()
+            };
+        });
+        after(() => {
+            simple.restore();
+        });
         it("should callback with 192.168.1.100", (done) => {
-            var dcc = new DCC(stub_client, {});
+            var dcc = new DCC(fakeClient, {});
             simple.mock(netUtil, "getMyIP").callbackWith("192.168.1.100");
             dcc.getIP((host) => {
                 assert.equal(host, "192.168.1.100");
@@ -168,8 +186,22 @@ describe("DCC", () => {
         });
     });
     describe("#getPort", () => {
+        var fakeClient;
+        before(() => {
+            fakeClient = {
+                opt: {},
+                addListener: simple.stub(),
+                removeListener: simple.stub(),
+                emit: simple.stub(),
+                ctcp: simple.stub(),
+                once: simple.stub()
+            };
+        });
+        after(() => {
+            simple.restore();
+        });
         it("should callback with 0 (options.ports: 0)", (done) => {
-            var dcc = new DCC(stub_client, {ports: 0});
+            var dcc = new DCC(fakeClient, {ports: 0});
             simple.mock(netUtil, "getUnusedPort").callbackWith(99999);
             dcc.getPort((port) => {
                 assert.equal(port, 0);
@@ -177,7 +209,7 @@ describe("DCC", () => {
             });
         });
         it("should callback with 2000", (done) => {
-            var dcc = new DCC(stub_client, { ports: [2000, 2020] });
+            var dcc = new DCC(fakeClient, { ports: [2000, 2020] });
             simple.mock(netUtil, "getUnusedPort").callbackWith(2000);
             dcc.getPort((port) => {
                 assert.equal(port, 2000);
@@ -186,8 +218,22 @@ describe("DCC", () => {
         });
     });
     describe("#getPortIP", () => {
+        var fakeClient;
+        before(() => {
+            fakeClient = {
+                opt: {},
+                addListener: simple.stub(),
+                removeListener: simple.stub(),
+                emit: simple.stub(),
+                ctcp: simple.stub(),
+                once: simple.stub()
+            };
+        });
+        after(() => {
+            simple.restore();
+        });
         it("should callback with 192.168.1.100:2000", (done) => {
-            var dcc = new DCC(stub_client, { ports: [2000, 2020] });
+            var dcc = new DCC(fakeClient, { ports: [2000, 2020] });
             simple.mock(netUtil, "getUnusedPort").callbackWith(2000);
             simple.mock(netUtil, "getMyIP").callbackWith("192.168.1.100");
             dcc.getPortIP((details) => {
@@ -199,6 +245,62 @@ describe("DCC", () => {
                 assert.deepEqual(details, expected);
                 done();
             });
+        });
+    });
+    describe("#sendFile", () => {
+        var fakeClient;
+        var fakeCon;
+        var fakeServer;
+        before(() => {
+            simple.mock(net, "createServer");
+            simple.mock(DCC.prototype, "getPortIP");
+            fakeClient = {
+                opt: {},
+                addListener: simple.stub(),
+                removeListener: simple.stub(),
+                emit: simple.stub(),
+                ctcp: simple.stub(),
+                once: simple.stub()
+            };
+
+            fakeServer = {
+                close: simple.stub(),
+                listen: simple.stub(),
+                address: simple.stub()
+            };
+            fakeCon = {
+                addListener: simple.stub(),
+                setTimeout: simple.stub(),
+            };
+            net.createServer.loop = false;
+            DCC.prototype.getPortIP.loop = false;
+            fakeClient.addListener.loop = false;
+            fakeClient.removeListener.loop = false;
+            fakeClient.emit.loop = false;
+            fakeClient.ctcp.loop = false;
+            fakeClient.once.loop = false;
+            fakeServer.close.loop = false;
+            fakeServer.listen.loop = false;
+            fakeServer.address.loop = false;
+            fakeCon.addListener.loop = false;
+            fakeCon.setTimeout.loop = false;
+        });
+        afterEach(() => {
+            net.createServer.reset();
+            DCC.prototype.getPortIP.reset();
+            fakeClient.addListener.reset();
+            fakeClient.removeListener.reset();
+            fakeClient.emit.reset();
+            fakeClient.ctcp.reset();
+            fakeClient.once.reset();
+            fakeServer.close.reset();
+            fakeServer.listen.reset();
+            fakeServer.address.reset();
+            fakeCon.addListener.reset();
+            fakeCon.setTimeout.reset();
+        });
+        after(() => {
+            simple.restore()
         });
     });
 });
