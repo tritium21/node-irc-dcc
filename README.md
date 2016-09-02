@@ -4,8 +4,6 @@
 
 ## A Simple DCC Echo Client Example
 
-The hello world of network programming.
-
 ```javascript
 const irc = require('irc');
 const DCC = require('irc-dcc');
