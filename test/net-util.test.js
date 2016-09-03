@@ -1,4 +1,4 @@
-/* global after, afterEach, before, beforeEach, it, describe */
+/* global after, afterEach, before, it, describe */
 //  Copyright(C) 2016 Alexander Walters
 //
 //  This program is free software: you can redistribute it and/or modify
@@ -59,7 +59,7 @@ describe("getMyIP", () => {
     it("should callback with 192.168.1.100 (from ipify)", (done) => {
         net.isIPv4.returnWith(true).returnWith(true);
         ip.isPrivate.returnWith(true).returnWith(true);
-        netUtil.fromIpify.callbackWith("192.168.1.100")
+        netUtil.fromIpify.callbackWith("192.168.1.100");
         netUtil.getMyIP("invalid", (addr) => {
             assert.equal(addr, "192.168.1.100");
             done();
@@ -68,7 +68,7 @@ describe("getMyIP", () => {
     it("should callback with 192.168.1.100 (from ipify via dns, err)", (done) => {
         net.isIPv4.returnWith(false).returnWith(false);
         dns.lookup.callbackWith(new Error(), null);
-        netUtil.fromIpify.callbackWith("192.168.1.100")
+        netUtil.fromIpify.callbackWith("192.168.1.100");
         netUtil.getMyIP("invalid", (addr) => {
             assert.equal(addr, "192.168.1.100");
             done();
@@ -78,7 +78,7 @@ describe("getMyIP", () => {
         net.isIPv4.returnWith(false).returnWith(false);
         ip.isPrivate.returnWith(true);
         dns.lookup.callbackWith(null, null);
-        netUtil.fromIpify.callbackWith("192.168.1.100")
+        netUtil.fromIpify.callbackWith("192.168.1.100");
         netUtil.getMyIP("invalid", (addr) => {
             assert.equal(addr, "192.168.1.100");
             done();

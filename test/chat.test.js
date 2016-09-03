@@ -16,7 +16,7 @@
 
 var assert = require("assert");
 var simple = require("simple-mock");
-var Chat = require("../lib/chat");
+var Chat = require("../lib/chat").Chat;
 
 describe("Chat", () => {
     var stub_con = {

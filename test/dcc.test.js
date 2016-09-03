@@ -1,4 +1,4 @@
-/* global afterEach, it, describe */
+/* global afterEach, before, after, it, describe */
 //  Copyright(C) 2016 Alexander Walters
 //
 //  This program is free software: you can redistribute it and/or modify
@@ -81,7 +81,7 @@ describe("DCC", () => {
                 emit: simple.stub(),
                 ctcp: simple.stub(),
                 once: simple.stub()
-                };
+            };
         });
         afterEach(() => {
             fakeClient.addListener.reset();
@@ -303,7 +303,7 @@ describe("DCC", () => {
             fakeCon.setTimeout.reset();
         });
         after(() => {
-            simple.restore()
+            simple.restore();
         });
         it("should callback with a fake connection", (done) => {
             DCC.prototype.getPortIP.callbackWith({
@@ -314,7 +314,7 @@ describe("DCC", () => {
             net.createServer.returnWith(fakeServer);
             fakeServer.on.callbackWith(fakeCon);
             var dcc = new DCC(fakeClient, {});
-            dcc.sendFile("to", "filename", 0, (err, con, pos) => {
+            dcc.sendFile("to", "filename", 0, (err, con) => {
                 assert.equal(fakeCon, con);
                 done();
             });
@@ -328,7 +328,7 @@ describe("DCC", () => {
             net.createServer.returnWith(fakeServer);
             fakeServer.on.callbackWith(fakeCon);
             var dcc = new DCC(fakeClient, {});
-            dcc.sendFile("to", "filename", 0, (err, con, pos) => { done(); });
+            dcc.sendFile("to", "filename", 0, () => { done(); });
             assert(fakeClient.removeListener.called);
         });
         it("should close the server", (done) => {
@@ -340,7 +340,7 @@ describe("DCC", () => {
             net.createServer.returnWith(fakeServer);
             fakeServer.on.callbackWith(fakeCon);
             var dcc = new DCC(fakeClient, {});
-            dcc.sendFile("to", "filename", 0, (err, con, pos) => { done(); });
+            dcc.sendFile("to", "filename", 0, () => { done(); });
             assert(fakeServer.close.called);
         });
         it("should send a DCC SEND message", (done) => {
@@ -354,7 +354,7 @@ describe("DCC", () => {
             fakeServer.address.returnWith({ port: 2000 });
             fakeServer.listen.callbackWith();
             var dcc = new DCC(fakeClient, {});
-            dcc.sendFile("to", "filename", 0, (err, con, pos) => { done(); });
+            dcc.sendFile("to", "filename", 0, () => { done(); });
             assert.deepEqual(
                 fakeClient.ctcp.lastCall.args,
                 ["to", "privmsg", "DCC SEND filename 3232235876 2000 0"]
@@ -395,7 +395,7 @@ describe("DCC", () => {
             );
             fakeServer.on.callbackWith(fakeCon);
             var dcc = new DCC(fakeClient, {});
-            dcc.sendFile("to", "filename", 0, (err, con, pos) => {
+            dcc.sendFile("to", "filename", 0, () => {
                 done();
             });
             assert.deepEqual(
@@ -422,7 +422,7 @@ describe("DCC", () => {
             );
             fakeServer.on.callbackWith(fakeCon);
             var dcc = new DCC(fakeClient, {});
-            dcc.sendFile("to", "filename", 0, (err, con, pos) => {
+            dcc.sendFile("to", "filename", 0, () => {
                 done();
             });
             assert.deepEqual(
@@ -457,7 +457,6 @@ describe("DCC", () => {
 
     });
     describe("#acceptChat", () => {
-        var Chat;
         var fakeClient;
         var fakeCon;
         before(() => {
@@ -481,7 +480,7 @@ describe("DCC", () => {
             fakeCon.on.reset();
         });
         after(() => {
-            simple.restore()
+            simple.restore();
         });
         it("should attempt to connect", () => {
             var dcc = new DCC(fakeClient, { localAddress: "192.168.1.50" });
@@ -490,14 +489,97 @@ describe("DCC", () => {
                 host: "192.168.1.100",
                 port: 1234,
                 localAddress: "192.168.1.50"
-            }
-            assert.deepEqual(expected, net.connect.lastCall.args[0])
+            };
+            assert.deepEqual(expected, net.connect.lastCall.args[0]);
         });
         it("should callback with Chat of con", (done) => {
             net.connect.returnWith(fakeCon);
-            fakeCon.on.callbackWith()
+            fakeCon.on.callbackWith();
             var dcc = new DCC(fakeClient, { localAddress: "192.168.1.50" });
             dcc.acceptChat("192.168.1.100", 1234, (err, chat) => {
+                assert.equal(chat.connection, fakeCon);
+                done();
+            });
+        });
+    });
+    describe("#sendChat", () => {
+        var fakeClient;
+        var fakeCon;
+        var fakeServer;
+        before(() => {
+            simple.mock(net, "createServer");
+            simple.mock(DCC.prototype, "getPortIP");
+            fakeClient = {
+                opt: {},
+                addListener: simple.stub(),
+                emit: simple.stub(),
+                ctcp: simple.stub(),
+            };
+            fakeCon = {
+                on: simple.stub(),
+                addListener: simple.stub()
+            };
+            fakeServer = {
+                listen: simple.stub(),
+                address: simple.stub(),
+                on: simple.stub(),
+                close: simple.stub()
+            };
+            net.createServer.loop = false;
+            DCC.prototype.getPortIP.loop = false;
+            fakeClient.ctcp.loop = false;
+            fakeServer.listen.loop = false;
+            fakeServer.address.loop = false;
+            fakeServer.on.loop = false;
+        });
+        afterEach(() => {
+            net.createServer.reset();
+            DCC.prototype.getPortIP.reset();
+            fakeClient.ctcp.reset();
+            fakeServer.listen.reset();
+            fakeServer.address.reset();
+            fakeServer.on.reset();
+        });
+        after(() => {
+            simple.restore();
+        });
+        it("should send a DCC CHAT", (done) => {
+            var expected = ["to", "privmsg", "DCC CHAT chat 3232235876 2000"];
+            DCC.prototype.getPortIP.callbackWith({
+                host: "192.168.1.100",
+                long: 3232235876,
+                port: 2000
+            });
+            net.createServer.returnWith(fakeServer);
+            fakeServer.listen.callbackWith();
+            fakeServer.address.returnWith({ port: 2000 });
+            fakeServer.on.callbackWith(fakeCon);
+            var dcc = new DCC(fakeClient, {});
+            dcc.sendChat("to", () => { done(); });
+            assert.deepEqual(fakeClient.ctcp.lastCall.args, expected);
+        });
+        it("should close the server", (done) => {
+            DCC.prototype.getPortIP.callbackWith({
+                host: "192.168.1.100",
+                long: 3232235876,
+                port: 2000
+            });
+            net.createServer.returnWith(fakeServer);
+            fakeServer.on.callbackWith(fakeCon);
+            var dcc = new DCC(fakeClient, {});
+            dcc.sendChat("to", () => { done(); });
+            assert(fakeServer.close.called);
+        });
+        it("should callback with Chat of con", (done) => {
+            DCC.prototype.getPortIP.callbackWith({
+                host: "192.168.1.100",
+                long: 3232235876,
+                port: 2000
+            });
+            net.createServer.returnWith(fakeServer);
+            fakeServer.on.callbackWith(fakeCon);
+            var dcc = new DCC(fakeClient, {});
+            dcc.sendChat("to", (err, chat) => {
                 assert.equal(chat.connection, fakeCon);
                 done();
             });
