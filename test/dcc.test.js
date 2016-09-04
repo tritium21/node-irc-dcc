@@ -247,6 +247,72 @@ describe("DCC", () => {
             });
         });
     });
+    describe("#acceptFile", () => {
+        var fakeClient;
+        before(() => {
+            simple.mock(DCC, "acceptAndConnectFile");
+            fakeClient = {
+                opt: {},
+                addListener: simple.stub(),
+                emit: simple.stub(),
+                ctcp: simple.stub(),
+                once: simple.stub()
+            };
+            DCC.acceptAndConnectFile.loop = false;
+            fakeClient.addListener.loop = false;
+            fakeClient.emit.loop = false;
+            fakeClient.ctcp.loop = false;
+            fakeClient.once.loop = false;
+        });
+        afterEach(() => {
+            DCC.acceptAndConnectFile.reset();
+            fakeClient.addListener.reset();
+            fakeClient.emit.reset();
+            fakeClient.ctcp.reset();
+            fakeClient.once.reset();
+        });
+        after(() => {
+            simple.restore();
+        });
+        it("should call acceptAndConnectFile (no position)", () => {
+            var fakeCB = () => { };
+            var expected = [
+                {
+                    host: "192.168.1.100",
+                    port: 2000,
+                    localAddress: "0.0.0.0"
+                },
+                "filename",
+                fakeCB
+            ];
+            var dcc = new DCC(fakeClient, {localAddress: "0.0.0.0"});
+            dcc.acceptFile("nick", "192.168.1.100", 2000, "filename", 1234567, fakeCB);
+            assert.deepEqual(DCC.acceptAndConnectFile.lastCall.args, expected);
+        });
+        it("should call acceptAndConnectFile (with position)", () => {
+            var fakeCB = () => { };
+            var expected = [
+                {
+                    host: "192.168.1.100",
+                    port: 2000,
+                    localAddress: "0.0.0.0"
+                },
+                "filename",
+                fakeCB
+            ];
+            fakeClient.once.callbackWith("nick", {filename: "filename", port: 2000});
+            var dcc = new DCC(fakeClient, { localAddress: "0.0.0.0" });
+            dcc.acceptFile("nick", "192.168.1.100", 2000, "filename", 1234567, 1234, fakeCB);
+            assert.deepEqual(DCC.acceptAndConnectFile.lastCall.args, expected);
+        });
+        it("should call irc.Client.ctcp (with position)", () => {
+            var fakeCB = () => { };
+            var expected = ["nick", "privmsg", "DCC RESUME filename 2000 1234"];
+            var dcc = new DCC(fakeClient, { localAddress: "0.0.0.0" });
+            dcc.acceptFile("nick", "192.168.1.100", 2000, "filename", 1234567, 1234, fakeCB);
+            assert.deepEqual(fakeClient.ctcp.lastCall.args, expected);
+        });
+    });
     describe("#sendFile", () => {
         var fakeClient;
         var fakeCon;

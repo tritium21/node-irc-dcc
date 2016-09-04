@@ -87,9 +87,9 @@ DCC
             }
         });
 
-.. js:function:: DCC.acceptSend (from, host, port, filename, length [, position], callback)
+.. js:function:: DCC.acceptFile (from, host, port, filename, length [, position], callback)
 
-    ``DCC.acceptSend`` does not do any disk IO -- it is your responsibility to open the file, and 
+    ``DCC.acceptFile`` does not do any disk IO -- it is your responsibility to open the file, and 
     send the data.  The library takes care of the CTCP messaging and establishing connections.
 
     :param string from: The nick sending the file
@@ -123,7 +123,7 @@ DCC
 
         client.on('dcc-send', (from, args, message) => {
             var ws = fs.createWriteStream(__dirname + "/" + args.filename)
-            dcc.acceptSend(from, args.host, args.port, args.filename,
+            dcc.acceptFile(from, args.host, args.port, args.filename,
                            args.length, (err, filename, con) => {
                 if (err) {
                     client.notice(from, err);
