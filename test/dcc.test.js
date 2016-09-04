@@ -144,17 +144,17 @@ describe("DCC", () => {
         });
         describe("Client.addListener", () => {
             it("should addListener once", () => {
-                new DCC(fakeClient, {});
+                new DCC(fakeClient);
                 assert.equal(fakeClient.addListener.callCount, 1);
             });
             it("should addListener ctcp-privmsg", () => {
-                new DCC(fakeClient, {});
+                new DCC(fakeClient);
                 assert.equal(fakeClient.addListener.lastCall.args[0], "ctcp-privmsg");
             });
         });
         describe("Client.emit", () => {
             it("should emit DCC SEND", () => {
-                new DCC(fakeClient, {});
+                new DCC(fakeClient);
                 var hnd = fakeClient.addListener.lastCall.args[1];
                 var expected = [
                     "dcc-send",
@@ -173,7 +173,7 @@ describe("DCC", () => {
                 assert.deepEqual(fakeClient.emit.lastCall.args, expected);
             });
             it("should not emit anything", () => {
-                new DCC(fakeClient, {});
+                new DCC(fakeClient);
                 var hnd = fakeClient.addListener.lastCall.args[1];
                 hnd("user", null, "PING 12345678", "message");
                 assert.equal(fakeClient.emit.callCount, 0);
@@ -181,7 +181,7 @@ describe("DCC", () => {
         });
         describe("Attributes", () => {
             it("should set the ports to 0 (automatic)", () => {
-                var dcc = new DCC(fakeClient, {});
+                var dcc = new DCC(fakeClient);
                 assert.equal(dcc.ports, 0);
             });
             it("should set the ports to [2000, 2020] (from options)", () => {
@@ -190,7 +190,7 @@ describe("DCC", () => {
             });
             it("should set localAddress to 192.168.1.100 (automatic)", () => {
                 simple.mock(ip, "address").returnWith("192.168.1.100");
-                var dcc = new DCC(fakeClient, {});
+                var dcc = new DCC(fakeClient);
                 assert.equal(dcc.localAddress, "192.168.1.100");
             });
             it("should set localAddress to 192.168.1.100 (from client)", () => {
@@ -200,7 +200,7 @@ describe("DCC", () => {
                     emit: simple.stub(),
                 };
                 simple.mock(ip, "address").returnWith("INVALID");
-                var dcc = new DCC(temp, {});
+                var dcc = new DCC(temp);
                 assert.equal(dcc.localAddress, "192.168.1.100");
             });
             it("should set localAddress to 192.168.1.100 (from options)", () => {
@@ -353,6 +353,22 @@ describe("DCC", () => {
             var dcc = new DCC(fakeClient, { localAddress: "0.0.0.0" });
             dcc.acceptFile("nick", "192.168.1.100", 2000, "filename", 1234567, 1234, fakeCB);
             assert.deepEqual(DCC.acceptAndConnectFile.lastCall.args, expected);
+        });
+        it("should not call acceptAndConnectFile (with position)", () => {
+            var fakeCB = () => { };
+            var expected = [
+                {
+                    host: "192.168.1.100",
+                    port: 2000,
+                    localAddress: "0.0.0.0"
+                },
+                "filename",
+                fakeCB
+            ];
+            fakeClient.once.callbackWith("nick", { filename: "filename", port: 9999 });
+            var dcc = new DCC(fakeClient, { localAddress: "0.0.0.0" });
+            dcc.acceptFile("nick", "192.168.1.100", 2000, "filename", 1234567, 1234, fakeCB);
+            assert(!DCC.acceptAndConnectFile.called);
         });
         it("should call irc.Client.ctcp (with position)", () => {
             var fakeCB = () => { };

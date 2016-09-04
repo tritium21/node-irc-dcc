@@ -23,7 +23,8 @@ describe("Chat", () => {
         addListener: simple.stub(),
         emit: simple.stub(),
         write: simple.stub(),
-        end: simple.stub()
+        end: simple.stub(),
+        requestedDisconnect: false
     };
 
     afterEach(() => {
@@ -31,6 +32,7 @@ describe("Chat", () => {
         stub_con.addListener.reset();
         stub_con.write.reset();
         stub_con.end.reset();
+        stub_con.requestedDisconnect = false;
     });
     describe("(constructor)", () => {
         it("should listen for data events", () => {
@@ -44,6 +46,13 @@ describe("Chat", () => {
             hnd("this is a");
             hnd(" line\r\n");
             assert.deepEqual(chat.emit.lastCall.args, ["line", "this is a line"]);
+        });
+        it("should not emit lines (from string)", () => {
+            var chat = new Chat(stub_con);
+            simple.mock(chat, "emit");
+            var hnd = stub_con.addListener.lastCall.args[1];
+            hnd("\r\n");
+            assert(!chat.emit.called);
         });
         it("should emit lines (from buffer)", () => {
             var chat = new Chat(stub_con);
@@ -82,6 +91,12 @@ describe("Chat", () => {
             var chat = new Chat(stub_con);
             chat.say("this is a test");
             assert.equal(stub_con.write.lastCall.args, "this is a test\r\n");
+        });
+        it("should not write", () => {
+            stub_con.requestedDisconnect = true;
+            var chat = new Chat(stub_con);
+            chat.say("this is a test");
+            assert(!stub_con.write.called);
         });
     });
     describe("#disconnect()", () => {
