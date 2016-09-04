@@ -71,6 +71,55 @@ describe("DCC.parseDCC()", function () {
 });
 
 describe("DCC", () => {
+    describe(".acceptAndConnectFile", () => {
+        var fakeCon;
+        before(() => {
+            simple.mock(net, "connect");
+            fakeCon = {
+                on: simple.stub(),
+                write: simple.stub()
+            };
+            net.connect.loop = false;
+            fakeCon.on.loop = false;
+            fakeCon.write.loop = false;
+        });
+        afterEach(() => {
+            net.connect.reset();
+            fakeCon.on.reset();
+            fakeCon.write.reset();
+        });
+        after(() => {
+            simple.restore();
+        });
+        it("should callback with filename and connection", (done) => {
+            var expected = [null, "filename", fakeCon];
+            net.connect.returnWith(fakeCon);
+            fakeCon.on.callbackWith()
+            var opt = {
+                host: "192.168.1.100",
+                port: 2000,
+                localAddress: "0.0.0.0"
+            };
+            DCC.acceptAndConnectFile(opt, "filename", (err, filename, connection) => {
+                assert.deepEqual([err, filename, connection], expected);
+                done();
+            });
+        });
+        it("should send data length", (done) => {
+            var buf = new Buffer(4);
+            buf.writeUInt32BE(4, 0);
+            var expected = [buf];
+            net.connect.returnWith(fakeCon);
+            fakeCon.on.callbackWith().callbackWith("data");
+            var opt = {
+                host: "192.168.1.100",
+                port: 2000,
+                localAddress: "0.0.0.0"
+            };
+            DCC.acceptAndConnectFile(opt, "filename", done);
+            assert.deepEqual(fakeCon.write.lastCall.args, expected);
+        });
+    });
     describe("(constructor)", () => {
         var fakeClient;
         before(() => {
@@ -337,7 +386,6 @@ describe("DCC", () => {
             };
             fakeCon = {
                 addListener: simple.stub(),
-                setTimeout: simple.stub(),
             };
             net.createServer.loop = false;
             DCC.prototype.getPortIP.loop = false;
@@ -351,7 +399,6 @@ describe("DCC", () => {
             fakeServer.address.loop = false;
             fakeServer.on.loop = false;
             fakeCon.addListener.loop = false;
-            fakeCon.setTimeout.loop = false;
         });
         afterEach(() => {
             net.createServer.reset();
@@ -366,7 +413,6 @@ describe("DCC", () => {
             fakeServer.address.reset();
             fakeServer.on.reset();
             fakeCon.addListener.reset();
-            fakeCon.setTimeout.reset();
         });
         after(() => {
             simple.restore();
