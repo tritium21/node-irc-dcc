@@ -19,6 +19,17 @@ client.on('dcc-chat', (from, args, message) => {
     });
 });
 ```
+### Accepting a file transfer
+```javascript
+client.on('dcc-send', (from, args, message) => {
+  dcc.acceptFile(from, args.host, args.port, args.filename, args.length, (err, file, conn) => {
+    console.log('Received:');
+    conn.on('data', (data) => console.log(data));
+    conn.on('end', () => console.log('Connection ended.'));
+  });
+});
+
+```
 ## Added DCC specific events
 |   Event    |                            Description                                  |
 |:----------:|:-----------------------------------------------------------------------:|
