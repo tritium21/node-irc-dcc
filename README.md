@@ -12,7 +12,7 @@ client = new irc.Client('irc.server.net', 'MyNickname', { channels: ['#a_channel
 dcc = new DCC(client);
 
 client.on('dcc-chat', (from, args, message) => {
-    dcc.acceptChat(args.host, args.port, (chat) => {
+    dcc.acceptChat(args.host, args.port, (err, chat) => {
         chat.on("line", (line) => {
             chat.say("You said: " + line);
         });
