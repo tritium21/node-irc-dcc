@@ -19,3 +19,10 @@ client.on('dcc-chat', (from, args, message) => {
     });
 });
 ```
+## Added DCC specific events
+Event       | Description
+=======================
+dcc-chat    | Emitted when a remote client attempts to chat with you
+dcc-send    | Emitted when a remote client attempts to send you a file
+dcc-resume  | Emitted when a remote client resumes a paused file transfer
+dcc-accept  | Emitted when a remote client accepts a file you are attempting to send
