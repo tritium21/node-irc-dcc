@@ -12,10 +12,29 @@ client = new irc.Client('irc.server.net', 'MyNickname', { channels: ['#a_channel
 dcc = new DCC(client);
 
 client.on('dcc-chat', (from, args, message) => {
-    dcc.acceptChat(args.host, args.port, (chat) => {
+    dcc.acceptChat(args.host, args.port, (err, chat) => {
         chat.on("line", (line) => {
             chat.say("You said: " + line);
         });
     });
 });
 ```
+### Accepting a file transfer
+```javascript
+client.on('dcc-send', (from, args, message) => {
+  dcc.acceptFile(from, args.host, args.port, args.filename, args.length, (err, file, conn) => {
+    console.log('Received:');
+    conn.on('data', (data) => console.log(data));
+    conn.on('end', () => console.log('Connection ended.'));
+  });
+});
+
+```
+## Added DCC specific events
+|   Event    |                            Description                                  |
+|:----------:|:-----------------------------------------------------------------------:|
+| dcc-send   | Emitted when a remote client attempts to send you a file                |
+| dcc-chat   | Emitted when a remote client attempts to chat with you                  |
+| dcc-send   | Emitted when a remote client attempts to send you a file                |
+| dcc-resume | Emitted when a remote client resumes a paused file transfer             |
+| dcc-accept | Emitted when a remote client accepts a file you are attempting to send  |
