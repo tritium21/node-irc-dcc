@@ -372,7 +372,7 @@ describe("DCC", () => {
         });
         it("should call irc.Client.ctcp (with position)", () => {
             var fakeCB = () => { };
-            var expected = ["nick", "privmsg", "DCC RESUME filename 2000 1234"];
+            var expected = ["nick", "privmsg", "DCC RESUME \"filename\" 2000 1234"];
             var dcc = new DCC(fakeClient, { localAddress: "0.0.0.0" });
             dcc.acceptFile("nick", "192.168.1.100", 2000, "filename", 1234567, 1234, fakeCB);
             assert.deepEqual(fakeClient.ctcp.lastCall.args, expected);
@@ -528,7 +528,7 @@ describe("DCC", () => {
             });
             assert.deepEqual(
                 fakeClient.ctcp.lastCall.args,
-                ["to", "privmsg", "DCC SEND filename 3232235876 2000 0"]
+                ["to", "privmsg", "DCC SEND \"filename\" 3232235876 2000 0"]
             );
         });
         it("should resume", (done) => {
@@ -555,7 +555,7 @@ describe("DCC", () => {
             });
             assert.deepEqual(
                 fakeClient.ctcp.lastCall.args,
-                ["to", "privmsg", "DCC ACCEPT filename 2000 50"]
+                ["to", "privmsg", "DCC ACCEPT \"filename\" 2000 50"]
             );
         });
         it("should callback with pos == 50", (done) => {
